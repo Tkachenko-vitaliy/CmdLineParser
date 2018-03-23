@@ -25,8 +25,8 @@ void AddParamFlag(const char* paramFlag);
 add a sign of parameter name (flag);
 
 
-void BindParam(const char* paramName, [bool, int, double…] & paramValue);Bind parameter with appropriating variable. When parsing, corresponding parameter value will be converted to the assigned variable
-
+void BindParam(const char* paramName, [bool, int, double…] & paramValue);
+Bind parameter with appropriating variable. When parsing, corresponding parameter value will be converted to the assigned variable
 
 void BindParam(const char* paramName, [callback_...]  callbackFunction);
 Bind parameter with appropriating callback function. When parsing, corresponding parameter value will be passed to the assigned function.
