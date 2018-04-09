@@ -2,7 +2,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
 #include "CmdLineParser.h"
 #include <limits>
 #include <sstream>
