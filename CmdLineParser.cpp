@@ -93,7 +93,7 @@ void CmdLineParser::Reset()
     mCurrentParam = nullptr;
 }
 
-void CmdLineParser::Parse(int argc, const char *argv[], int argStart)
+void CmdLineParser::Parse(int argc, const char* const argv[], int argStart)
 {
     Reset();
 
