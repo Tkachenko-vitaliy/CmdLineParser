@@ -1,4 +1,4 @@
-// CmdLineParser.cpp: implementation of the CCmdLineParser class.
+// CmdLineParser.cpp: implementation of the CmdLineParser class.
 //
 //////////////////////////////////////////////////////////////////////
 
