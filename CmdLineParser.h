@@ -23,7 +23,7 @@ public:
     CmdLineParser(std::initializer_list<const char*> listParamFlag);
     virtual ~CmdLineParser();
 
-    void Parse(int argc, const char* argv[], int argStart = 0);
+    void Parse(int argc, const char* const argv[], int argStart = 0);
     void Parse(const char* cmdLineString);
 
     void AssignParamFlags(std::initializer_list<const char*> listParamFlag);
