@@ -1,4 +1,4 @@
-// CmdLineParser.cpp: implementation of the CmdLineParser class.
+// CmdLineParser.cpp: implementation of the CCmdLineParser class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -19,6 +19,7 @@ CmdLineParser::CmdLineParser():
     , mBoolYesValue("Yes")
     , mBoolNoValue("No")
     , mIgnoreUnknownParams(true)
+    , mParamNameCaseSensitive(false)
 {
 }
 
@@ -634,6 +635,16 @@ bool CmdLineParser::GetIgnoreUnknownParams() const
     return mIgnoreUnknownParams;
 }
 
+void CmdLineParser::SetParamNameCaseSensitive(bool bSensitive)
+{
+    mParamNameCaseSensitive = bSensitive;
+}
+
+bool CmdLineParser::GetParamNameCaseSensitive() const
+{
+    return mParamNameCaseSensitive;
+}
+
 void CmdLineParser::SetBoolYesValue(const char* szValue)
 {
     mBoolYesValue = szValue;
@@ -809,7 +820,14 @@ void CmdLineParser::ClearParams()
 
 CmdLineParser::ParamDescriptor* CmdLineParser::GetParamDescriptor(const char* paramName)
 {
-    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName](ParamDescriptor& descrInList) {return _stricmp(descrInList.paramName, paramName) == 0; });
+    bool bSencitive = mParamNameCaseSensitive;
+    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName, bSencitive](ParamDescriptor& descrInList)
+    {
+        if (bSencitive)
+            return strcmp(descrInList.paramName, paramName) == 0;
+        else
+            return _stricmp(descrInList.paramName, paramName) == 0; 
+    });
 
     if (it != mListParamDescriptors.end())
     {
@@ -823,7 +841,14 @@ CmdLineParser::ParamDescriptor* CmdLineParser::GetParamDescriptor(const char* pa
 
 CmdLineParser::ParamDescriptor* CmdLineParser::FindParamDescriptor(const char* paramName)
 {
-    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName](ParamDescriptor& descrInList) {return _stricmp(descrInList.paramName, paramName) == 0; });
+    bool bSencitive = mParamNameCaseSensitive;
+    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName, bSencitive](ParamDescriptor& descrInList) 
+    {
+        if (bSencitive)
+            return strcmp(descrInList.paramName, paramName) == 0;
+        else
+            return _stricmp(descrInList.paramName, paramName) == 0;
+    });
 
     if (it != mListParamDescriptors.end())
     {
@@ -837,11 +862,11 @@ CmdLineParser::ParamDescriptor* CmdLineParser::FindParamDescriptor(const char* p
 
 void CmdLineParser::AssignDescriptor(const ParamDescriptor& descr)
 {
-    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [descr](ParamDescriptor& descrInList) {return _stricmp(descr.paramName, descrInList.paramName) == 0; });
+    ParamDescriptor* pFoundDescriptor = FindParamDescriptor(descr.paramName);
 
-    if (it != mListParamDescriptors.end())
+    if (pFoundDescriptor)
     {
-        *it = descr;
+        *pFoundDescriptor = descr;
     }
     else
     {

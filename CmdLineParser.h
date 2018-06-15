@@ -108,6 +108,8 @@ public:
 
     void SetIgnoreUnknownParams(bool bIgnore);
     bool GetIgnoreUnknownParams() const;
+    void SetParamNameCaseSensitive(bool bSensitive);
+    bool GetParamNameCaseSensitive() const;
 
     void SetBoolYesValue(const char* szValue);
     void SetBoolNoValue(const char* szValue);
@@ -207,6 +209,7 @@ private:
     const char* mBoolNoValue;
 
     bool mIgnoreUnknownParams;
+    bool mParamNameCaseSensitive;
 
     bool LongFromString(const char* paramName, const char* numberString, long& number, int radix);
     bool ULongFromString(const char* paramName, const char* numberString, unsigned long& number, int radix);

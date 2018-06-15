@@ -992,6 +992,18 @@ void T_Errors()
    
 }
 
+void T_ParamNameSensitive()
+{
+    parser.ClearParams();
+    parser.SetParamNameCaseSensitive(true);
+    int val1 = 0, val2 = 0;
+    parser.BindParam("c",val1);
+    parser.BindParam("C", val2);
+
+    parser.Parse("/c 1 /C 2");
+    assert(val1 = 1 && val2 == 2);
+}
+
 int main(int argc, char* argv[])
 {
     BindParams();
@@ -1015,6 +1027,7 @@ int main(int argc, char* argv[])
     T_NotNumeric();
     T_Overload();
     T_Errors();
+    T_ParamNameSensitive();
 
 	return 0;
 }
