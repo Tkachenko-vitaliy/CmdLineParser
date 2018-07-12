@@ -29,6 +29,7 @@ CmdLineParser::CmdLineParser(std::initializer_list<const char*> listParamFlag) :
     , mBoolYesValue("Yes")
     , mBoolNoValue("No")
     , mIgnoreUnknownParams(true)
+    , mParamNameCaseSensitive(false)
     , mListFlag(listParamFlag)
 {
 }
