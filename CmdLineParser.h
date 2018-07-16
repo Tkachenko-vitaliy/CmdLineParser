@@ -2,14 +2,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_CMDLINEPARSER_H__7BD1322A_8F68_4488_8839_692B623C4AA5__INCLUDED_)
-#define AFX_CMDLINEPARSER_H__7BD1322A_8F68_4488_8839_692B623C4AA5__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
-//#include <string>
 #include <vector>
 #include <list>
 #include <functional>
@@ -72,8 +66,8 @@ public:
     {
     public:
 
-        ParamIterator& operator++();
-        ParamIterator& operator--();
+        ParamIterator& operator++(int);
+        ParamIterator& operator--(int);
         bool operator != (ParamIterator const& other) const;
         bool operator == (ParamIterator const& other) const;
         const ParamIterator& operator*() const;
@@ -227,4 +221,3 @@ private:
     radix_t GetNumberRadix(const char* szValue);
 };
 
-#endif // !defined(AFX_CMDLINEPARSER_H__7BD1322A_8F68_4488_8839_692B623C4AA5__INCLUDED_)

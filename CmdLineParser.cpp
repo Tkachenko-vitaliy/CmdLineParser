@@ -1534,7 +1534,7 @@ void CmdLineParser::ParamIterator::FillDescription()
 }
 
 
-CmdLineParser::ParamIterator& CmdLineParser::ParamIterator::operator++()
+CmdLineParser::ParamIterator& CmdLineParser::ParamIterator::operator++(int)
 {
     assert(index < parser->mListParamDescriptors.size()); //iterator not dereferencable (out of range)
     index++;
@@ -1542,7 +1542,7 @@ CmdLineParser::ParamIterator& CmdLineParser::ParamIterator::operator++()
     return *this;
 }
 
-CmdLineParser::ParamIterator& CmdLineParser::ParamIterator::operator--()
+CmdLineParser::ParamIterator& CmdLineParser::ParamIterator::operator--(int)
 {
     assert(index < parser->mListParamDescriptors.size()); //iterator not dereferencable (out of range)
     index--;
