@@ -1,7 +1,3 @@
-// CmdLineParser.h: interface for the CCmdLineParser class.
-//
-//////////////////////////////////////////////////////////////////////
-
 #pragma once
 
 #include <vector>

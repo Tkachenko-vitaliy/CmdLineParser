@@ -1,17 +1,9 @@
-// CmdLineParser.cpp: implementation of the CCmdLineParser class.
-//
-//////////////////////////////////////////////////////////////////////
-
 #include "CmdLineParser.h"
 #include <limits>
 #include <sstream>
 #include <algorithm>
 #include <string.h>
 #include <assert.h>
-
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 CmdLineParser::CmdLineParser():
     mListRadixPrefix({ "0b", "0o", "0x" })
