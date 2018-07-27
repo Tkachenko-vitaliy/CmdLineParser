@@ -149,7 +149,7 @@ public:
     };
 
 protected:
-    virtual void Analyze(const char* pszParam, bool bFlag, bool bLast);
+    virtual void Analyze(const char* pszParam, bool bFlag);
     virtual void OnError(const char* paramName, error_t errorCode);
 
 private:
@@ -210,8 +210,9 @@ private:
     void CheckLength(ParamDescriptor* descriptor, const char* value);
     void CheckValueConstrains(ParamDescriptor* descriptor, const char* value);
     void CheckNumericValueConstrains(ParamDescriptor* descriptor, double value);
-    void ParseItem(const char* stringItem, bool bLast);
+    void ParseItem(const char* stringItem);
     void Reset();
+    void OnFinish();
     void AnalyzeParam(const char* pszParam);
     void AnalyzeValue(const char* pszValue);
     radix_t GetNumberRadix(const char* szValue);

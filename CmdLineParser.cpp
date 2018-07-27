@@ -49,7 +49,7 @@ bool IsNegativeNumeric(const char* szValue)
     return false;
 }
 
-void CmdLineParser::ParseItem(const char* stringItem, bool bLast)
+void CmdLineParser::ParseItem(const char* stringItem)
 {
     bool bFlag = false;
 
@@ -72,7 +72,7 @@ void CmdLineParser::ParseItem(const char* stringItem, bool bLast)
         }
     }
 
-    Analyze(stringItem, bFlag, bLast);
+    Analyze(stringItem, bFlag);
 }
 
 void CmdLineParser::Reset()
@@ -94,10 +94,9 @@ void CmdLineParser::Parse(int argc, const char* const argv[], int argStart)
     for (int i = argStart; i < argc; i++)
     {
         const char* pszParam = argv[i];
-        bool bLast = ((i + 1) == argc);
-
-        ParseItem(pszParam, bLast);
+        ParseItem(pszParam);
     }
+    OnFinish();
 }
 
 void CmdLineParser::Parse(const char* cmdLineString)
@@ -154,20 +153,18 @@ void CmdLineParser::Parse(const char* cmdLineString)
 
         if (state == st_end)
         {
-            bool bLast = true;
             unsigned int shifted = position + 1;
 
             while (cmdLineString[shifted] != '\0')
             {
                 if (cmdLineString[shifted] != ' ')
                 {
-                    bLast = false;
                     break;
                 }
                 shifted++;
             }
 
-            ParseItem(stringAccum.c_str(), bLast);
+            ParseItem(stringAccum.c_str());
             state = st_start;
             stringAccum.clear();
         }
@@ -177,8 +174,10 @@ void CmdLineParser::Parse(const char* cmdLineString)
 
     if (!stringAccum.empty())
     {
-        ParseItem(stringAccum.c_str(), true);
+        ParseItem(stringAccum.c_str());
     }
+
+    OnFinish();
 }
 
 CmdLineParser::radix_t CmdLineParser::GetNumberRadix(const char* szValue)
@@ -867,7 +866,7 @@ void CmdLineParser::AssignDescriptor(const ParamDescriptor& descr)
     }
 }
 
-void CmdLineParser::Analyze(const char *pszParam, bool bFlag, bool bLast)
+void CmdLineParser::Analyze(const char *pszParam, bool bFlag)
 {
     if (bFlag)
     {
@@ -882,15 +881,15 @@ void CmdLineParser::Analyze(const char *pszParam, bool bFlag, bool bLast)
         AnalyzeValue(pszParam);
         mCurrentParam = nullptr;
     }
+}
 
-    if (bLast)
+void CmdLineParser::OnFinish()
+{
+    for (auto& descr : mListParamDescriptors)
     {
-        for (auto& descr : mListParamDescriptors)
+        if ((descr.constrainRules & CN_MANDATORY) && !descr.isAssign)
         {
-            if ((descr.constrainRules & CN_MANDATORY) && !descr.isAssign)
-            {
-                OnError(descr.paramName, E_NOT_DEFINED);
-            }
+            OnError(descr.paramName, E_NOT_DEFINED);
         }
     }
 }

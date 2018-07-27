@@ -985,7 +985,22 @@ void T_Errors()
     //Empty string
     parser.Parse("");
 
+    //Empty with mandatory
+    int integer;
+    parser.BindParam("Int", integer);
+    parser.AddConstrains("Int", CmdLineParser::CN_MANDATORY);
+    try
+    {
+        parser.Parse("");
+    }
+    catch (CmdLineParser::CmdLineParseException& e)
+    {
+        bException = true;
+        assert(e.GetErrorCode() == CmdLineParser::E_NOT_DEFINED);
+    }
+
     //Only flags
+    parser.DeleteConstrains("Int", CmdLineParser::CN_MANDATORY);
     parser.Parse("/ -");
     parser.Parse("/-");
     parser.Parse("/");
