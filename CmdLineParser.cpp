@@ -81,9 +81,7 @@ void CmdLineParser::Reset()
     {
         descr.isAssign = false;
     }
-    std::for_each(mListParamDescriptors.begin(), mListParamDescriptors.end(),
-        [](ParamDescriptor& descr) {descr.isAssign = false; }
-    );
+    
     mCurrentParam = nullptr;
 }
 
@@ -605,7 +603,6 @@ void CmdLineParser::AddConstrains(const char* paramName, rule_mask_t rulesMask)
 
 void CmdLineParser::DeleteConstrains(const char* paramName, rule_mask_t rulesMask)
 {
-    ParamDescriptor* ddd = GetParamDescriptor(paramName); //$D
     GetParamDescriptor(paramName)->constrainRules &= ~rulesMask;
 }
 
@@ -767,6 +764,20 @@ void CmdLineParser::ClearValueConstrains(const char* paramName)
 bool CmdLineParser::IsValueAssigned(const char* paramName) const
 {
     return const_cast<CmdLineParser*>(this)->GetParamDescriptor(paramName)->isAssign;
+}
+
+void CmdLineParser::ResetValueAssigned(const char* paramName)
+{
+    ParamDescriptor* descr = GetParamDescriptor(paramName);
+    descr->isAssign = false;
+}
+
+void CmdLineParser::ClearValueAssigned()
+{
+    for (auto &descr : mListParamDescriptors)
+    {
+        descr.isAssign = false;
+    }
 }
 
 bool CmdLineParser::IsParamExist(const char* paramName) const
@@ -1467,7 +1478,7 @@ const char* CmdLineParser::CmdLineParseException::what() const
         "not numeric value",    //E_NOT_NUMERIC, 
         "value is too large",   //E_OVERLOAD
         "value is out of range",//E_OUT_OF_RANGE
-        "value is not defined", //E_NOT_DEFINED  ,
+        "value is not defined", //E_NOT_DEFINED,
         "value cannot be negative" //E_NEGATIVE
     };
 
