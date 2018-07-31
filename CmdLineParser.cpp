@@ -389,52 +389,57 @@ void CmdLineParser::ClearParamFlags()
     mListFlag.clear();
 }
 
-void CmdLineParser::BindParam(const char* paramName, char& paramValue)
+void CmdLineParser::BindParam(const char* paramName, char& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_CHAR;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, unsigned char& paramValue)
+void CmdLineParser::BindParam(const char* paramName, unsigned char& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_UCHAR;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, bool& paramValue)
+void CmdLineParser::BindParam(const char* paramName, bool& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_BOOL;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, short& paramValue)
+void CmdLineParser::BindParam(const char* paramName, short& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_SHORT;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, unsigned short& paramValue)
+void CmdLineParser::BindParam(const char* paramName, unsigned short& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_USHORT;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, int& paramValue)
+void CmdLineParser::BindParam(const char* paramName, int& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
@@ -443,69 +448,76 @@ void CmdLineParser::BindParam(const char* paramName, int& paramValue)
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, unsigned int& paramValue)
+void CmdLineParser::BindParam(const char* paramName, unsigned int& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_UINT;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 
 }
 
-void CmdLineParser::BindParam(const char* paramName, long& paramValue)
+void CmdLineParser::BindParam(const char* paramName, long& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_LONG;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, unsigned long& paramValue)
+void CmdLineParser::BindParam(const char* paramName, unsigned long& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_ULONG;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, float& paramValue)
+void CmdLineParser::BindParam(const char* paramName, float& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_FLOAT;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, double& paramValue)
+void CmdLineParser::BindParam(const char* paramName, double& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_DOUBLE;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
 
-void CmdLineParser::BindParam(const char* paramName, std::string& paramValue)
+void CmdLineParser::BindParam(const char* paramName, std::string& paramValue, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_STRING;
     descr.paramData = &paramValue;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, char* paramValue, unsigned long length)
+void CmdLineParser::BindParam(const char* paramName, char* paramValue, unsigned long length, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_CHAR_BUFFER;
     descr.paramData = paramValue;
     descr.length = length;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
@@ -519,27 +531,29 @@ void CmdLineParser::BindParamIsSet(const char* paramName, bool& isParamSet)
 }
 
 
-void CmdLineParser::BindParam(const char* paramName, callback_string_t callbackFunction)
+void CmdLineParser::BindParam(const char* paramName, callback_string_t callbackFunction, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_STRING;
     descr.callbackContainer.funcCharPtr = callbackFunction;
     descr.isCallback = true;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, callback_bool_t callbackFunction)
+void CmdLineParser::BindParam(const char* paramName, callback_bool_t callbackFunction, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_BOOL;
     descr.callbackContainer.funcBool = callbackFunction;
     descr.isCallback = true;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, callback_char_t callbackFunction)
+void CmdLineParser::BindParam(const char* paramName, callback_char_t callbackFunction, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
@@ -547,47 +561,52 @@ void CmdLineParser::BindParam(const char* paramName, callback_char_t callbackFun
     descr.length = 1;
     descr.callbackContainer.funcChar = callbackFunction;
     descr.isCallback = true;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
 
-void CmdLineParser::BindParam(const char* paramName, callback_long_t callbackFunction)
+void CmdLineParser::BindParam(const char* paramName, callback_long_t callbackFunction, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_LONG;
     descr.callbackContainer.funcLong = callbackFunction;
     descr.isCallback = true;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, callback_ulong_t callbackFunction)
+void CmdLineParser::BindParam(const char* paramName, callback_ulong_t callbackFunction, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_ULONG;
     descr.callbackContainer.funcULong = callbackFunction;
     descr.isCallback = true;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, callback_double_t callbackFunction)
+void CmdLineParser::BindParam(const char* paramName, callback_double_t callbackFunction, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_DOUBLE;
     descr.callbackContainer.funcDouble = callbackFunction;
     descr.isCallback = true;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
-void CmdLineParser::BindParam(const char* paramName, callback_param_set_t callbackFunction)
+void CmdLineParser::BindParam(const char* paramName, callback_param_set_t callbackFunction, rule_mask_t ruleMask)
 {
     ParamDescriptor descr;
     descr.paramName = paramName;
     descr.paramType = P_FLAG;
     descr.callbackContainer.funcIsSet= callbackFunction;
     descr.isCallback = true;
+    descr.constrainRules = ruleMask;
     AssignDescriptor(descr);
 }
 
@@ -1034,7 +1053,6 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
             {
                 return;
             }
-            int q1 = std::numeric_limits<unsigned char>::min(); int q2 = std::numeric_limits<unsigned char>::max(); //$D
             if ((val < std::numeric_limits<unsigned char>::min()) || (val > std::numeric_limits<unsigned char>::max()))
             {
                 OnError(mCurrentParam->paramName, E_OVERLOAD);

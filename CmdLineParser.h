@@ -9,6 +9,11 @@
 class CmdLineParser  
 {
 public:
+    typedef enum { P_UNDEF = 0, P_FLAG, P_CHAR, P_UCHAR, P_BOOL, P_SHORT, P_USHORT, P_INT, P_UINT, P_LONG, P_ULONG, P_FLOAT, P_DOUBLE, P_STRING, P_CHAR_BUFFER } param_type_t;
+    typedef enum { CN_NONE = 0, CN_MANDATORY = 0x01, CN_NO_DUPLICATE = 0x02, CN_RANGE = 0x04, CN_LENGTH = 0x08, CN_LIST_VALUE = 0x10, CN_CASE_SENSITIVE = 0x20, CN_CHAR_AS_NUMBER = 0x40, CN_NO_NEGATIVE_UNSIGNED = 0x80 } constrain_rules_t;
+    typedef enum { E_UNKNOWN_KEY = 0, E_INVALID_VALUE = 1, E_DUPLICATE = 2, E_TOO_LONG = 3, E_NOT_NUMERIC = 4, E_OVERLOAD = 5, E_OUT_OF_RANGE = 6, E_NOT_DEFINED = 7, E_NEGATIVE = 8 } error_t;
+    typedef unsigned int rule_mask_t;
+
 	CmdLineParser();
     CmdLineParser(std::initializer_list<const char*> listParamFlag);
     virtual ~CmdLineParser();
@@ -23,19 +28,19 @@ public:
     bool IsFlagExist(const char* paramFlag) const;
     void ClearParamFlags();
 
-    void BindParam(const char* paramName, bool& paramValue);
-    void BindParam(const char* paramName, char& paramValue);
-    void BindParam(const char* paramName, unsigned char& paramValue);
-    void BindParam(const char* paramName, short& paramValue);
-    void BindParam(const char* paramName, unsigned short& paramValue);
-    void BindParam(const char* paramName, int& paramValue);
-    void BindParam(const char* paramName, unsigned int& paramValue);
-    void BindParam(const char* paramName, long& paramValue);
-    void BindParam(const char* paramName, unsigned long& paramValue);
-    void BindParam(const char* paramName, float& paramValue);
-    void BindParam(const char* paramName, double& paramValue);
-    void BindParam(const char* paramName, std::string& paramValue);
-    void BindParam(const char* paramName, char* paramValue, unsigned long length);
+    void BindParam(const char* paramName, bool& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, char& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, unsigned char& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, short& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, unsigned short& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, int& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, unsigned int& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, long& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, unsigned long& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, float& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, double& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, std::string& paramValue, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, char* paramValue, unsigned long length, rule_mask_t ruleMask = CN_NONE);
     void BindParamIsSet(const char* paramName, bool& isParamSet);
         
     typedef std::function<void(const char* paramName, const char* paramValue)> callback_string_t;
@@ -46,18 +51,14 @@ public:
     typedef std::function<void(const char* paramName, double paramValue)> callback_double_t;
     typedef std::function<void(const char* paramName)> callback_param_set_t;
 
-    void BindParam(const char* paramName, callback_string_t callbackFunction);
-    void BindParam(const char* paramName, callback_bool_t callbackFunction);
-    void BindParam(const char* paramName, callback_char_t callbackFunction);
-    void BindParam(const char* paramName, callback_long_t callbackFunction);
-    void BindParam(const char* paramName, callback_ulong_t callbackFunction);
-    void BindParam(const char* paramName, callback_double_t callbackFunction);
-    void BindParam(const char* paramName, callback_param_set_t callbackFunction);
+    void BindParam(const char* paramName, callback_string_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, callback_bool_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, callback_char_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, callback_long_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, callback_ulong_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, callback_double_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
+    void BindParam(const char* paramName, callback_param_set_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
 
-    typedef enum { P_UNDEF = 0, P_FLAG, P_CHAR, P_UCHAR, P_BOOL, P_SHORT, P_USHORT, P_INT, P_UINT, P_LONG, P_ULONG, P_FLOAT, P_DOUBLE, P_STRING, P_CHAR_BUFFER } param_type_t;
-    typedef enum { CN_NONE = 0, CN_MANDATORY = 0x01, CN_NO_DUPLICATE = 0x02, CN_RANGE = 0x04, CN_LENGTH = 0x08, CN_LIST_VALUE = 0x10, CN_CASE_SENSITIVE = 0x20, CN_CHAR_AS_NUMBER = 0x40, CN_NO_NEGATIVE_UNSIGNED = 0x80 } constrain_rules_t;
-    typedef unsigned int rule_mask_t;
-    
     class ParamIterator : public std::iterator<std::bidirectional_iterator_tag, ParamIterator>
     {
     public:
@@ -132,8 +133,6 @@ public:
     void ResetValueAssigned(const char* paramName);
     void ClearValueAssigned();
     
-    typedef enum { E_UNKNOWN_KEY = 0, E_INVALID_VALUE=1, E_DUPLICATE=2, E_TOO_LONG=3, E_NOT_NUMERIC=4, E_OVERLOAD=5, E_OUT_OF_RANGE=6, E_NOT_DEFINED=7, E_NEGATIVE=8 } error_t;
-
     class CmdLineParseException : public std::exception
     {
     public:
