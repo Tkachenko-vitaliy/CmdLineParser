@@ -1,8 +1,12 @@
 # Command Line Parser
 Command line parser is designed for command line parsing. 
-Command line is consist of set of pairs [name] [value], where [name] is a  parameter name (marked by flag); [value] is a parameter value. It is standard way to pass parameters to the executing file.
+Command line is consist of set of pairs 
 
-Example of command line:
+<sign-of-parameter_name><parameter-name> [parameter-value], 
+ 
+where <name> is a  parameter name (marked with sign); <value> is a parameter value. It is standard way to pass parameters to the executing file.
+
+Example of a command line:
 /File D:\File1 /Count  354 -string "Calculate value"
 
 # Features:
