@@ -6,7 +6,9 @@
 #include <array>
 #include <memory>
 
-class CmdLineParser  
+class CmdLineParser;
+
+class CmdLineParser
 {
 public:
     typedef enum { P_UNDEF = 0, P_FLAG, P_CHAR, P_UCHAR, P_BOOL, P_SHORT, P_USHORT, P_INT, P_UINT, P_LONG, P_ULONG, P_FLOAT, P_DOUBLE, P_STRING, P_CHAR_BUFFER } param_type_t;
@@ -59,42 +61,8 @@ public:
     void BindParam(const char* paramName, callback_double_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
     void BindParam(const char* paramName, callback_param_set_t callbackFunction, rule_mask_t ruleMask = CN_NONE);
 
-    class ParamIterator : public std::iterator<std::bidirectional_iterator_tag, ParamIterator>
-    {
-    public:
-
-        ParamIterator& operator++(int);
-        ParamIterator& operator--(int);
-        bool operator != (ParamIterator const& other) const;
-        bool operator == (ParamIterator const& other) const;
-        const ParamIterator& operator*() const;
-        operator bool() const;
-
-        const char* paramName;
-        param_type_t paramType;
-        bool isAssign;
-        bool isCallback;
-        rule_mask_t constrainRules;
-        double minValue;
-        double maxValue;
-        unsigned long length;
-
-    private:
-        friend class CmdLineParser;
-
-        ParamIterator(const CmdLineParser* parser, size_t index = 0);
-
-        const CmdLineParser* parser;
-        size_t index;
-        void FillDescription();
-    };
-
-    ParamIterator GetParamIterator() const;
-    ParamIterator GetParamIterator(const char* paramName) const;
-
     bool IsParamExist(const char* paramName) const;
     bool DeleteParam(const char* paramName);
-    void DeleteParam(ParamIterator paramIter);
     void ClearParams();
 
     void SetIgnoreUnknownParams(bool bIgnore);
@@ -139,7 +107,7 @@ public:
         CmdLineParseException(const char* szparamName, error_t errorCode);
         const char* GetParamName() const;
         error_t GetErrorCode() const;
-        const char* what() const override;
+        const char* what() const noexcept override;
     private:
         const char* paramName;
         error_t errorCode;
@@ -149,7 +117,6 @@ public:
 
 protected:
     virtual void Analyze(const char* pszParam, bool bFlag);
-    virtual void OnError(const char* paramName, error_t errorCode);
 
 private:
   
@@ -200,6 +167,7 @@ private:
     bool mIgnoreUnknownParams;
     bool mParamNameCaseSensitive;
 
+    void OnError(const char* paramName, error_t errorCode);
     bool LongFromString(const char* paramName, const char* numberString, long& number, int radix);
     bool ULongFromString(const char* paramName, const char* numberString, unsigned long& number, int radix);
     bool DoubleFromString(const char* paramName, const char* numberString, double& number);

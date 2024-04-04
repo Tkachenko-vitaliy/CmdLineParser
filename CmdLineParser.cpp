@@ -1,9 +1,15 @@
-#include "CmdLineParser.h"
+#include "qsp/framework/utils/CmdLineParser.h"
+
 #include <limits>
 #include <sstream>
 #include <algorithm>
 #include <string.h>
 #include <assert.h>
+#include <string.h>
+
+#ifdef  WIN32
+    #define strcasecmp _stricmp
+#endif
 
 CmdLineParser::CmdLineParser():
     mListRadixPrefix({ "0b", "0o", "0x" })
@@ -66,7 +72,7 @@ void CmdLineParser::ParseItem(const char* stringItem)
         // remove flag specifier
         bFlag = true;
         stringItem += strlen(*it);
-        if (stringItem == '\0') //only param sign without definition at the end of the string.
+        if (*stringItem == '\0') //only param sign without definition at the end of the string.
         {
             return;
         }
@@ -147,6 +153,11 @@ void CmdLineParser::Parse(const char* cmdLineString)
             default:
                 stringAccum.push_back(cmdLineString[position]);
             }
+            break;
+
+        case st_end:
+            //it will be processed further. We process this case in order to eliminate warning
+            break;
         }
 
         if (state == st_end)
@@ -309,7 +320,7 @@ void CmdLineParser::CheckValueConstrains(ParamDescriptor* descriptor, const char
         }
         else
         {
-            res = _stricmp(value, i);
+            res = strcasecmp(value, i);
         }
 
         if (res == 0)
@@ -738,7 +749,7 @@ void CmdLineParser::DeleteValueConstrain(const char* paramName, const char* valu
         }
         else
         {
-            compare = _stricmp(*index, value);
+            compare = strcasecmp(*index, value);
         }
         if (compare == 0)
         {
@@ -806,7 +817,8 @@ bool CmdLineParser::IsParamExist(const char* paramName) const
 
 bool CmdLineParser::DeleteParam(const char* paramName)
 {
-    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName](ParamDescriptor& descrInList) {return _stricmp(descrInList.paramName, paramName) == 0; });
+    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName](ParamDescriptor& descrInList)
+        {return strcasecmp(descrInList.paramName, paramName) == 0; });
 
     if (it != mListParamDescriptors.end())
     {
@@ -823,17 +835,6 @@ bool CmdLineParser::DeleteParam(const char* paramName)
     }
  }
 
-void CmdLineParser::DeleteParam(ParamIterator paramIter)
-{
-    assert(paramIter); //Invalid iterator
-    auto it = mListParamDescriptors.begin() + paramIter.index;
-    if (mCurrentParam == it.operator->())
-    {
-        mCurrentParam = nullptr;
-    }
-    mListParamDescriptors.erase(it);
-}
-
 void CmdLineParser::ClearParams()
 {
     mListParamDescriptors.clear();
@@ -848,7 +849,7 @@ CmdLineParser::ParamDescriptor* CmdLineParser::GetParamDescriptor(const char* pa
         if (bSencitive)
             return strcmp(descrInList.paramName, paramName) == 0;
         else
-            return _stricmp(descrInList.paramName, paramName) == 0; 
+            return strcasecmp(descrInList.paramName, paramName) == 0;
     });
 
     if (it != mListParamDescriptors.end())
@@ -869,7 +870,7 @@ CmdLineParser::ParamDescriptor* CmdLineParser::FindParamDescriptor(const char* p
         if (bSencitive)
             return strcmp(descrInList.paramName, paramName) == 0;
         else
-            return _stricmp(descrInList.paramName, paramName) == 0;
+            return strcasecmp(descrInList.paramName, paramName) == 0;
     });
 
     if (it != mListParamDescriptors.end())
@@ -981,14 +982,13 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
             pszValue += radix.prefix_size;
 
             long val;
-            if (!LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix))
-            {
-                return;
-            }
+            LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+
             if ((val < std::numeric_limits<char>::min()) || (val > std::numeric_limits<char>::max()))
             {
                 OnError(mCurrentParam->paramName, E_OVERLOAD);
             }
+
             if (mCurrentParam->constrainRules & CN_RANGE)
             {
                 if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
@@ -1011,7 +1011,6 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         }
         else
         {
-
             if (strlen(pszValue) > 1)
             {
                 OnError(mCurrentParam->paramName, E_TOO_LONG);
@@ -1045,18 +1044,33 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
             pszValue += radix.prefix_size;
 
             unsigned long val;
-            if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && pszValue[0] == '-')
+            if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && IsNegativeNumeric(pszValue))
             {
                 OnError(mCurrentParam->paramName, E_NEGATIVE);
             }
-            if (!ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix))
+
+            if (IsNegativeNumeric(pszValue))
             {
-                return;
+                long negative;
+                LongFromString(mCurrentParam->paramName, pszValue, negative, radix.radix);
+                if (negative < std::numeric_limits<char>::min())
+                {
+                    OnError(mCurrentParam->paramName, E_OVERLOAD);
+                }
+                else
+                {
+                    val = negative;
+                }
             }
-            if ((val < std::numeric_limits<unsigned char>::min()) || (val > std::numeric_limits<unsigned char>::max()))
+            else
             {
-                OnError(mCurrentParam->paramName, E_OVERLOAD);
+                ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+                if (val > std::numeric_limits<unsigned char>::max())
+                {
+                    OnError(mCurrentParam->paramName, E_OVERLOAD);
+                }
             }
+
             if (mCurrentParam->constrainRules & CN_RANGE)
             {
                 if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
@@ -1100,13 +1114,13 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
     {
         bool res;
 
-        if (_stricmp(pszValue, mBoolYesValue) == 0)
+        if (strcasecmp(pszValue, mBoolYesValue) == 0)
         {
             res = true;
         }
         else
         {
-            if (_stricmp(pszValue, mBoolNoValue) == 0)
+            if (strcasecmp(pszValue, mBoolNoValue) == 0)
             {
                 res = false;
             }
@@ -1137,10 +1151,8 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         pszValue += radix.prefix_size;
 
         long val;
-        if (!LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix))
-        {
-            return;
-        }
+        LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+
         if ((val < std::numeric_limits<short>::min()) || (val > std::numeric_limits<short>::max()))
         {
             OnError(mCurrentParam->paramName, E_OVERLOAD);
@@ -1170,18 +1182,33 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         pszValue += radix.prefix_size;
 
         unsigned long val;
-        if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && pszValue[0] == '-')
+        if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && IsNegativeNumeric(pszValue))
         {
             OnError(mCurrentParam->paramName, E_NEGATIVE);
         }
-        if (!ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix))
+
+        if (IsNegativeNumeric(pszValue))
         {
-            return;
+            long negative;
+            LongFromString(mCurrentParam->paramName, pszValue, negative, radix.radix);
+            if (negative < std::numeric_limits<short>::min())
+            {
+                OnError(mCurrentParam->paramName, E_OVERLOAD);
+            }
+            else
+            {
+                val = negative;
+            }
         }
-        if ((val < std::numeric_limits<unsigned short>::min()) || (val > std::numeric_limits<unsigned short>::max()))
+        else
         {
-            OnError(mCurrentParam->paramName, E_OVERLOAD);
+            ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+            if (val > std::numeric_limits<unsigned short>::max())
+            {
+                OnError(mCurrentParam->paramName, E_OVERLOAD);
+            }
         }
+
         if (mCurrentParam->constrainRules & CN_RANGE)
         {
             if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
@@ -1207,14 +1234,13 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         pszValue += radix.prefix_size;
 
         long val;
-        if (!LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix))
-        {
-            return;
-        }
+        LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+
         if ((val < std::numeric_limits<int>::min()) || (val > std::numeric_limits<int>::max()))
         {
             OnError(mCurrentParam->paramName, E_OVERLOAD);
         }
+
         if (mCurrentParam->constrainRules & CN_RANGE)
         {
             if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
@@ -1240,18 +1266,33 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         pszValue += radix.prefix_size;
 
         unsigned long val;
-        if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && pszValue[0] == '-')
+        if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && IsNegativeNumeric(pszValue))
         {
             OnError(mCurrentParam->paramName, E_NEGATIVE);
         }
-        if (!ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix))
+
+        if (IsNegativeNumeric(pszValue))
         {
-            return;
+            long negative;
+            LongFromString(mCurrentParam->paramName, pszValue, negative, radix.radix);
+            if (negative < std::numeric_limits<int>::min())
+            {
+                OnError(mCurrentParam->paramName, E_OVERLOAD);
+            }
+            else
+            {
+                val = negative;
+            }
         }
-        if ((val < std::numeric_limits<unsigned int>::min()) || (val > std::numeric_limits<unsigned int>::max()))
+        else
         {
-            OnError(mCurrentParam->paramName, E_OVERLOAD);
+            ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+            if (val > std::numeric_limits<unsigned int>::max())
+            {
+                OnError(mCurrentParam->paramName, E_OVERLOAD);
+            }
         }
+
         if (mCurrentParam->constrainRules & CN_RANGE)
         {
             if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
@@ -1277,10 +1318,8 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         pszValue += radix.prefix_size;
 
         long val;
-        if (!LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix))
-        {
-            return;
-        }
+        LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+
         if (mCurrentParam->constrainRules & CN_RANGE)
         {
             if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
@@ -1317,10 +1356,9 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         {
             OnError(mCurrentParam->paramName, E_NEGATIVE);
         }
-        if (!ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix))
-        {
-            return;
-        }
+
+        ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+
         if (mCurrentParam->constrainRules & CN_RANGE)
         {
             if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
@@ -1350,15 +1388,13 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         CheckLength(mCurrentParam, pszValue);
 
         double val;
+        DoubleFromString(mCurrentParam->paramName, pszValue, val);
 
-        if (!DoubleFromString(mCurrentParam->paramName, pszValue, val))
-        {
-            return;
-        }
         if ((val < std::numeric_limits<float>::min()) || (val > std::numeric_limits<float>::max()))
         {
             OnError(mCurrentParam->paramName, E_OVERLOAD);
         }
+
         if (mCurrentParam->constrainRules & CN_RANGE)
         {
             if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
@@ -1381,11 +1417,7 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
         CheckLength(mCurrentParam, pszValue);
 
         double val;
-
-        if (!DoubleFromString(mCurrentParam->paramName, pszValue, val))
-        {
-            return;
-        }
+        DoubleFromString(mCurrentParam->paramName, pszValue, val);
 
         if (mCurrentParam->constrainRules & CN_RANGE)
         {
@@ -1436,11 +1468,14 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
 
         CheckValueConstrains(mCurrentParam, pszValue);
 
-        strcpy_s((char*)mCurrentParam->paramData, mCurrentParam->length, pszValue);
+        strncpy((char*)mCurrentParam->paramData, pszValue, mCurrentParam->length);
 
         mCurrentParam->isAssign = true;
     }
     break;
+
+    default:
+        break;
     }
 }
 
@@ -1480,7 +1515,7 @@ size_t CmdLineParser::CmdLineParseException::GetMaxStringSize(const char* string
     return maxSize;
 }
 
-const char* CmdLineParser::CmdLineParseException::what() const
+const char* CmdLineParser::CmdLineParseException::what() const noexcept
 {
     if (errorString)
     {
@@ -1506,87 +1541,8 @@ const char* CmdLineParser::CmdLineParseException::what() const
     size_t sizeBuffer = cMaxSizeErrorString + cReserved + strlen(paramName);
     errorString.reset(new char[sizeBuffer]);
 
-    sprintf_s(errorString.get(), sizeBuffer, "Parameter '%s': %s", paramName, errorStringArray[errorCode]);
+    snprintf(errorString.get(), sizeBuffer, "Parameter '%s': %s", paramName, errorStringArray[errorCode]);
 
     return errorString.get();
 }
 
-CmdLineParser::ParamIterator CmdLineParser::GetParamIterator() const
-{
-    return ParamIterator(this);
-}
-
-CmdLineParser::ParamIterator CmdLineParser::GetParamIterator(const char* paramName) const
-{
-    for (size_t i = 0; i < mListParamDescriptors.size(); i++)
-    {
-        if (_stricmp(paramName, mListParamDescriptors[i].paramName) == 0)
-        {
-            return ParamIterator(this, i);
-        }
-    }
-
-    const_cast<CmdLineParser*>(this)->OnError(paramName, E_UNKNOWN_KEY);
-
-    return ParamIterator(this, mListParamDescriptors.size());
-}
-
-CmdLineParser::ParamIterator::ParamIterator(const CmdLineParser* parser, size_t index)
-{
-    this->parser = parser;
-    this->index = index;
-    FillDescription();
-}
-
-void CmdLineParser::ParamIterator::FillDescription()
-{
-    if (index < parser->mListParamDescriptors.size())
-    {
-        paramName  = parser->mListParamDescriptors[index].paramName;
-        paramType  = parser->mListParamDescriptors[index].paramType;
-        isAssign   = parser->mListParamDescriptors[index].isAssign;
-        isCallback = parser->mListParamDescriptors[index].isCallback;
-        constrainRules = parser->mListParamDescriptors[index].constrainRules;
-        minValue = parser->mListParamDescriptors[index].minValue;
-        maxValue = parser->mListParamDescriptors[index].maxValue;
-        length   = parser->mListParamDescriptors[index].length;
-    }
-}
-
-
-CmdLineParser::ParamIterator& CmdLineParser::ParamIterator::operator++(int)
-{
-    assert(index < parser->mListParamDescriptors.size()); //iterator not dereferencable (out of range)
-    index++;
-    FillDescription();
-    return *this;
-}
-
-CmdLineParser::ParamIterator& CmdLineParser::ParamIterator::operator--(int)
-{
-    assert(index < parser->mListParamDescriptors.size()); //iterator not dereferencable (out of range)
-    index--;
-    FillDescription();
-    return *this;
-}
-
-bool CmdLineParser::ParamIterator::operator != (ParamIterator const& other) const
-{
-    return this->parser != other.parser || this->index != other.index;
-}
-
-bool CmdLineParser::ParamIterator::operator == (ParamIterator const& other) const
-{
-    return this->parser == other.parser && this->index == other.index;
-}
-
-const CmdLineParser::ParamIterator& CmdLineParser::ParamIterator::operator* () const
-{
-    assert(index < parser->mListParamDescriptors.size()); //iterator not dereferencable (out of range)"
-    return *this;
-}
-
-CmdLineParser::ParamIterator::operator bool() const
-{
-    return index < parser->mListParamDescriptors.size();
-}
