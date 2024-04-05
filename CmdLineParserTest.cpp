@@ -110,15 +110,15 @@ TEST(CmdLineParserTest, SetParamFlag)
     {
         switch (i)
         {
-        case 0:
-            EXPECT_EQ(strcmp(list_flags.first[i], "/"), 0);
-            break;
-        case 1:
-            EXPECT_EQ(strcmp(list_flags.first[i], "-"), 0);
-            break;
-        case 2:
-            EXPECT_EQ(strcmp(list_flags.first[i], "+++"), 0);
-            break;
+            case 0:
+                EXPECT_EQ(strcmp(list_flags.first[i], "/"), 0);
+                break;
+            case 1:
+                EXPECT_EQ(strcmp(list_flags.first[i], "-"), 0);
+                break;
+            case 2:
+                EXPECT_EQ(strcmp(list_flags.first[i], "+++"), 0);
+                break;
         }
     }
 
@@ -153,22 +153,22 @@ TEST(CmdLineParserTest, SimpleArgumentParsing)
     BindParams(parser, params);
 
     const char*argv[]=
-    {
-        "/char", "A", 
-        "-uchar", "1",
-        "+++bool", "yes",
-        "/short", "-100", 
-        "/ushort", "100",
-        "/int", "0b1010",
-        "/uint", "0xFFFFFFFF",
-        "/long", "-1000",
-        "/ulong", "0o144",
-        "/Float",  "10.5",
-        "/Double", "1e+3",
-        "/String", "123 456",
-        "/CharArray", "123456",
-        "/Flag"
-    };
+            {
+                    "/char", "A",
+                    "-uchar", "1",
+                    "+++bool", "yes",
+                    "/short", "-100",
+                    "/ushort", "100",
+                    "/int", "0b1010",
+                    "/uint", "0xFFFFFFFF",
+                    "/long", "-1000",
+                    "/ulong", "0o144",
+                    "/Float",  "10.5",
+                    "/Double", "1e+3",
+                    "/String", "123 456",
+                    "/CharArray", "123456",
+                    "/Flag"
+            };
 
     int argc = std::extent <decltype(argv)>::value;
     EXPECT_NO_THROW(parser.Parse(argc,argv));
@@ -182,8 +182,8 @@ TEST(CmdLineParserTest, CnCharAsNumber)
     Parameters params;
     BindParams(parser, params);
 
-    parser.AddConstrains("Char", CmdLineParser::CN_CHAR_AS_NUMBER);
-    parser.AddConstrains("UChar", CmdLineParser::CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("Char", CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("UChar", CN_CHAR_AS_NUMBER);
     parser.Parse("/Char 0x64 /UChar 0xFF");
 
     EXPECT_EQ(params.vChar, 0x64);
@@ -200,22 +200,22 @@ TEST(CmdLineParserTest, CnMandatory)
     int mandatory;
 
     parser.BindParam("mandatory", mandatory);
-    parser.AddConstrains("mandatory", CmdLineParser::CN_MANDATORY);
+    parser.AddConstrains("mandatory", CN_MANDATORY);
 
     try
     {
         parser.Parse("/Int 1000");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_DEFINED);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_DEFINED);
     }
 
     EXPECT_EQ(bException, true);
     EXPECT_EQ(parser.IsValueAssigned("mandatory"), false);
 
-    parser.DeleteConstrains("mandatory", CmdLineParser::CN_MANDATORY);
+    parser.DeleteConstrains("mandatory", CN_MANDATORY);
     EXPECT_NO_THROW(parser.Parse("/Int 1000"));
 }
 
@@ -228,16 +228,16 @@ TEST(CmdLineParserTest, CnNoDuplicate)
     bool bException = false;
     parser.Parse("/Int 1000 /Int 1001");
     EXPECT_EQ(params.vInt, 1001);
-    parser.AddConstrains("Int", CmdLineParser::CN_NO_DUPLICATE);
+    parser.AddConstrains("Int", CN_NO_DUPLICATE);
 
     try
     {
         parser.Parse("/Int 1000 /Int 1001");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_DUPLICATE);
+        EXPECT_EQ(e.GetErrorCode(), E_DUPLICATE);
     }
 
     EXPECT_EQ(bException, true);
@@ -255,10 +255,10 @@ TEST(CmdLineParserTest, CnRange)
     {
         parser.Parse("/Int 1000");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OUT_OF_RANGE);
+        EXPECT_EQ(e.GetErrorCode(), E_OUT_OF_RANGE);
     }
     EXPECT_EQ(bException, true);
 
@@ -268,10 +268,10 @@ TEST(CmdLineParserTest, CnRange)
     {
         parser.Parse("/ULong 0xFFFFFFFF");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OUT_OF_RANGE);
+        EXPECT_EQ(e.GetErrorCode(), E_OUT_OF_RANGE);
     }
     EXPECT_EQ(bException, true);
 
@@ -281,10 +281,10 @@ TEST(CmdLineParserTest, CnRange)
     {
         parser.Parse("/Double 0.5");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OUT_OF_RANGE);
+        EXPECT_EQ(e.GetErrorCode(), E_OUT_OF_RANGE);
     }
     EXPECT_EQ(bException, true);
 
@@ -302,7 +302,7 @@ TEST(CmdLineParserTest, CnLength)
     Parameters params;
     BindParams(parser, params);
 
-    parser.AddConstrains("Char", CmdLineParser::CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("Char", CN_CHAR_AS_NUMBER);
     parser.SetLengthConstrain("Char", 2);
     parser.SetLengthConstrain("Long", 5);
 
@@ -311,10 +311,10 @@ TEST(CmdLineParserTest, CnLength)
     {
         parser.Parse("/Char 123 ");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_TOO_LONG);
+        EXPECT_EQ(e.GetErrorCode(), E_TOO_LONG);
     }
     EXPECT_EQ(bException, true);
 
@@ -323,16 +323,16 @@ TEST(CmdLineParserTest, CnLength)
     {
         parser.Parse("/Long 123456 ");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_TOO_LONG);
+        EXPECT_EQ(e.GetErrorCode(), E_TOO_LONG);
     }
     EXPECT_EQ(bException, true);
 
     bException = false;
-    parser.DeleteConstrains("Char", CmdLineParser::CN_LENGTH);
-    parser.DeleteConstrains("Long", CmdLineParser::CN_LENGTH);
+    parser.DeleteConstrains("Char", CN_LENGTH);
+    parser.DeleteConstrains("Long", CN_LENGTH);
     EXPECT_NO_THROW(parser.Parse("/Char 123 /Long 123456 "));
     EXPECT_EQ(params.vChar, 123);
     EXPECT_EQ(params.vLong, 123456);
@@ -345,7 +345,7 @@ TEST(CmdLineParserTest, CnListValue)
     Parameters params;
     BindParams(parser, params);
 
-    parser.AssignConstrains("Char", CmdLineParser::CN_NONE);
+    parser.AssignConstrains("Char", CN_NONE);
     parser.AddValueConstrain("Char", "A");
     parser.AddValueConstrain("Char", "B");
     parser.AddValueConstrain("Char", "C");
@@ -355,16 +355,16 @@ TEST(CmdLineParserTest, CnListValue)
     {
         parser.Parse("/Char D ");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_INVALID_VALUE);
+        EXPECT_EQ(e.GetErrorCode(), E_INVALID_VALUE);
     }
     EXPECT_EQ(bException, true);
 
     EXPECT_NO_THROW(parser.Parse("/Char c "));
 
-    parser.DeleteConstrains("Char", CmdLineParser::CN_LIST_VALUE);
+    parser.DeleteConstrains("Char", CN_LIST_VALUE);
     EXPECT_NO_THROW(parser.Parse("/Char X "));
     EXPECT_EQ(params.vChar, 'X');
 
@@ -376,10 +376,10 @@ TEST(CmdLineParserTest, CnListValue)
     {
         parser.Parse("/Int 10");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_INVALID_VALUE);
+        EXPECT_EQ(e.GetErrorCode(), E_INVALID_VALUE);
     }
     EXPECT_EQ(bException, true);
 
@@ -387,7 +387,7 @@ TEST(CmdLineParserTest, CnListValue)
     EXPECT_NO_THROW(parser.Parse("/Int 1"));
     EXPECT_EQ(params.vInt, 1);
 
-    parser.DeleteConstrains("Int", CmdLineParser::CN_LIST_VALUE);
+    parser.DeleteConstrains("Int", CN_LIST_VALUE);
     EXPECT_NO_THROW(parser.Parse("/Int 10"));
     EXPECT_EQ(params.vInt, 10);
 }
@@ -398,8 +398,8 @@ TEST(CmdLineParserTest, CnCaseSensitive)
     Parameters params;
     BindParams(parser, params);
 
-    parser.AssignConstrains("Char", CmdLineParser::CN_LIST_VALUE | CmdLineParser::CN_CASE_SENSITIVE);
-    
+    parser.AssignConstrains("Char", CN_LIST_VALUE | CN_CASE_SENSITIVE);
+
     parser.AddValueConstrain("Char", "A");
     parser.AddValueConstrain("Char", "B");
     parser.AddValueConstrain("Char", "C");
@@ -409,16 +409,16 @@ TEST(CmdLineParserTest, CnCaseSensitive)
     {
         parser.Parse("/Char c ");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_INVALID_VALUE);
+        EXPECT_EQ(e.GetErrorCode(), E_INVALID_VALUE);
         bException = true;
     }
     EXPECT_EQ(bException, true);
 
     EXPECT_NO_THROW(parser.Parse("/Char C "));
 
-    parser.DeleteConstrains("Char", CmdLineParser::CN_CASE_SENSITIVE);
+    parser.DeleteConstrains("Char", CN_CASE_SENSITIVE);
     EXPECT_NO_THROW(parser.Parse("/Char C "));
 }
 
@@ -428,11 +428,11 @@ TEST(CmdLineParserTest, CnNoNegativeUnsigned)
     Parameters params;
     BindParams(parser, params);
 
-    parser.AddConstrains("uchar", CmdLineParser::CN_CHAR_AS_NUMBER);
-    parser.AddConstrains("uchar", CmdLineParser::CN_NO_NEGATIVE_UNSIGNED);
-    parser.AddConstrains("ushort", CmdLineParser::CN_NO_NEGATIVE_UNSIGNED);
-    parser.AddConstrains("uint", CmdLineParser::CN_NO_NEGATIVE_UNSIGNED);
-    parser.AddConstrains("ulong", CmdLineParser::CN_NO_NEGATIVE_UNSIGNED);
+    parser.AddConstrains("uchar", CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("uchar", CN_NO_NEGATIVE_UNSIGNED);
+    parser.AddConstrains("ushort", CN_NO_NEGATIVE_UNSIGNED);
+    parser.AddConstrains("uint", CN_NO_NEGATIVE_UNSIGNED);
+    parser.AddConstrains("ulong", CN_NO_NEGATIVE_UNSIGNED);
 
     bool bException;
     bException = false;
@@ -440,9 +440,9 @@ TEST(CmdLineParserTest, CnNoNegativeUnsigned)
     {
         parser.Parse("/UChar -123 ");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NEGATIVE);
+        EXPECT_EQ(e.GetErrorCode(), E_NEGATIVE);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -452,9 +452,9 @@ TEST(CmdLineParserTest, CnNoNegativeUnsigned)
     {
         parser.Parse("/UShort -123 ");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NEGATIVE);
+        EXPECT_EQ(e.GetErrorCode(), E_NEGATIVE);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -464,9 +464,9 @@ TEST(CmdLineParserTest, CnNoNegativeUnsigned)
     {
         parser.Parse("/Uint -123 ");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NEGATIVE);
+        EXPECT_EQ(e.GetErrorCode(), E_NEGATIVE);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -476,17 +476,17 @@ TEST(CmdLineParserTest, CnNoNegativeUnsigned)
     {
         parser.Parse("/Ulong -123 ");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NEGATIVE);
+        EXPECT_EQ(e.GetErrorCode(), E_NEGATIVE);
         bException = true;
     }
     EXPECT_EQ(bException, true);
 
-    parser.DeleteConstrains("uchar", CmdLineParser::CN_NO_NEGATIVE_UNSIGNED);
-    parser.DeleteConstrains("ushort", CmdLineParser::CN_NO_NEGATIVE_UNSIGNED);
-    parser.DeleteConstrains("uint", CmdLineParser::CN_NO_NEGATIVE_UNSIGNED);
-    parser.DeleteConstrains("ulong", CmdLineParser::CN_NO_NEGATIVE_UNSIGNED);
+    parser.DeleteConstrains("uchar", CN_NO_NEGATIVE_UNSIGNED);
+    parser.DeleteConstrains("ushort", CN_NO_NEGATIVE_UNSIGNED);
+    parser.DeleteConstrains("uint", CN_NO_NEGATIVE_UNSIGNED);
+    parser.DeleteConstrains("ulong", CN_NO_NEGATIVE_UNSIGNED);
 
     EXPECT_NO_THROW(parser.Parse("/Uchar -123 /Ushort -123 /Uint -123 /Ulong -123 "));
 }
@@ -496,7 +496,7 @@ TEST(CmdLineParserTest, SetNegativeUnsigned)
     CmdLineParser parser({"/", "-", "+++"});
     Parameters params;
     BindParams(parser, params);
-    parser.AddConstrains("uchar", CmdLineParser::CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("uchar", CN_CHAR_AS_NUMBER);
 
     parser.Parse("/Uchar -123 /Ushort -123 /Uint -123 /Ulong -123 ");
 
@@ -534,46 +534,46 @@ TEST(CmdLineParserTest, BindCallback)
     BindParams(parser, params);
 
     parser.BindParam("Char", CmdLineParser::callback_string_t(
-        [&params](const char* paramName, const char* paramValue) {params.vChar = paramValue[0]; }
+            [&params](const char* paramName, const char* paramValue) {params.vChar = paramValue[0]; }
     ));
     parser.BindParam("UChar", CmdLineParser::callback_string_t(
-        [&params](const char* paramName, const char* paramValue) {params.vUChar = paramValue[0]; }
+            [&params](const char* paramName, const char* paramValue) {params.vUChar = paramValue[0]; }
     ));
 
     parser.BindParam("BOOL", CmdLineParser::callback_bool_t(
-        [&params](const char* paramName, bool paramValue) {params.vBool = paramValue; }
+            [&params](const char* paramName, bool paramValue) {params.vBool = paramValue; }
     ));
 
     parser.BindParam("short", CmdLineParser::callback_long_t(
-        [&params](const char* paramName, long paramValue) {params.vShort = (short)paramValue; }
+            [&params](const char* paramName, long paramValue) {params.vShort = (short)paramValue; }
     ));
 
     parser.BindParam("ushort", CmdLineParser::callback_ulong_t(
-        [&params](const char* paramName, unsigned long paramValue) {params.vUShort = (unsigned short) paramValue; }
+            [&params](const char* paramName, unsigned long paramValue) {params.vUShort = (unsigned short) paramValue; }
     ));
 
     parser.BindParam("int", CmdLineParser::callback_long_t(
-        [&params](const char* paramName, long paramValue) {params.vInt = (int)paramValue; }
+            [&params](const char* paramName, long paramValue) {params.vInt = (int)paramValue; }
     ));
 
     parser.BindParam("uint", CmdLineParser::callback_ulong_t(
-        [&params](const char* paramName, unsigned long paramValue) {params.vUInt = (unsigned int)paramValue; }
+            [&params](const char* paramName, unsigned long paramValue) {params.vUInt = (unsigned int)paramValue; }
     ));
 
     parser.BindParam("long", CmdLineParser::callback_long_t(
-        [&params](const char* paramName, long paramValue) {params.vLong = paramValue; }
+            [&params](const char* paramName, long paramValue) {params.vLong = paramValue; }
     ));
 
     parser.BindParam("ulong", CmdLineParser::callback_ulong_t(
-        [&params](const char* paramName, unsigned long paramValue) {params.vULong = paramValue; }
+            [&params](const char* paramName, unsigned long paramValue) {params.vULong = paramValue; }
     ));
 
     parser.BindParam("float", CmdLineParser::callback_double_t(
-        [&params](const char* paramName, double paramValue) {params.vFloat = (float)paramValue; }
+            [&params](const char* paramName, double paramValue) {params.vFloat = (float)paramValue; }
     ));
 
     parser.BindParam("double", CmdLineParser::callback_double_t(
-        [&params](const char* paramName, double paramValue) {params.vDouble = paramValue; }
+            [&params](const char* paramName, double paramValue) {params.vDouble = paramValue; }
     ));
 
     parser.BindParam("string", CmdLineParser::callback_string_t(
@@ -582,7 +582,7 @@ TEST(CmdLineParserTest, BindCallback)
 
     parser.BindParam("CharArray", CmdLineParser::callback_string_t(classFunc(params)));
     parser.BindParam("Flag", CmdLineParser::callback_param_set_t(classFunc(params)));
-    
+
     EXPECT_NO_THROW(parser.Parse(g_BaseParamString));
     CheckParams(params);
 }
@@ -596,9 +596,9 @@ TEST(CmdLineParserTest, RadixPrefix)
     parser.SetRadixPrefix(CmdLineParser::BIN, "?");
     parser.SetRadixPrefix(CmdLineParser::OCT, "!");
     parser.SetRadixPrefix(CmdLineParser::HEX, "#-#");
-    parser.AddConstrains("UChar", CmdLineParser::CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("UChar", CN_CHAR_AS_NUMBER);
     params.vULong = 98;
-    
+
     EXPECT_NO_THROW(parser.Parse("/UChar #-#FF /Int ?1010 /Long !1750 -Double -.3E-5 /String #"));
 
     EXPECT_EQ(params.vUChar, 0xFF);
@@ -615,15 +615,15 @@ TEST(CmdLineParserTest, NotNumeric)
     Parameters params;
     BindParams(parser, params);
 
-    parser.AddConstrains("Char", CmdLineParser::CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("Char", CN_CHAR_AS_NUMBER);
     bool bException = false;
     try
     {
         parser.Parse("/Char &");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_NUMERIC);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_NUMERIC);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -633,9 +633,9 @@ TEST(CmdLineParserTest, NotNumeric)
     {
         parser.Parse("/Short 123#");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_NUMERIC);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_NUMERIC);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -645,9 +645,9 @@ TEST(CmdLineParserTest, NotNumeric)
     {
         parser.Parse("/UShort 12X3");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_NUMERIC);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_NUMERIC);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -657,9 +657,9 @@ TEST(CmdLineParserTest, NotNumeric)
     {
         parser.Parse("/Long 1.5");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_NUMERIC);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_NUMERIC);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -669,9 +669,9 @@ TEST(CmdLineParserTest, NotNumeric)
     {
         parser.Parse("/ULong x1000");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_NUMERIC);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_NUMERIC);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -681,9 +681,9 @@ TEST(CmdLineParserTest, NotNumeric)
     {
         parser.Parse("/Double -18.3e+7?");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_NUMERIC);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_NUMERIC);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -694,9 +694,9 @@ TEST(CmdLineParserTest, NotNumeric)
     {
         parser.Parse("/Long 0x");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_NUMERIC);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_NUMERIC);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -708,8 +708,8 @@ TEST(CmdLineParserTest, Overload)
     Parameters params;
     BindParams(parser, params);
 
-    parser.AddConstrains("Char", CmdLineParser::CN_CHAR_AS_NUMBER);
-    parser.AddConstrains("UChar", CmdLineParser::CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("Char", CN_CHAR_AS_NUMBER);
+    parser.AddConstrains("UChar", CN_CHAR_AS_NUMBER);
     parser.SetRadixPrefix(CmdLineParser::HEX, "0x");
     bool bException;
 
@@ -718,9 +718,9 @@ TEST(CmdLineParserTest, Overload)
     {
         parser.Parse("/Char -200");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OVERLOAD);
+        EXPECT_EQ(e.GetErrorCode(), E_OVERLOAD);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -730,9 +730,9 @@ TEST(CmdLineParserTest, Overload)
     {
         parser.Parse("/Uchar 999");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OVERLOAD);
+        EXPECT_EQ(e.GetErrorCode(), E_OVERLOAD);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -742,9 +742,9 @@ TEST(CmdLineParserTest, Overload)
     {
         parser.Parse("/Short 0xFFFF");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OVERLOAD);
+        EXPECT_EQ(e.GetErrorCode(), E_OVERLOAD);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -754,9 +754,9 @@ TEST(CmdLineParserTest, Overload)
     {
         parser.Parse("/UShort 0xFFFFF");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OVERLOAD);
+        EXPECT_EQ(e.GetErrorCode(), E_OVERLOAD);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -766,9 +766,9 @@ TEST(CmdLineParserTest, Overload)
     {
         parser.Parse("/Int 0xFFFFFFFF");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OVERLOAD);
+        EXPECT_EQ(e.GetErrorCode(), E_OVERLOAD);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -778,9 +778,9 @@ TEST(CmdLineParserTest, Overload)
     {
         parser.Parse("/UINT 4294967297");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OVERLOAD);
+        EXPECT_EQ(e.GetErrorCode(), E_OVERLOAD);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -790,9 +790,9 @@ TEST(CmdLineParserTest, Overload)
     {
         parser.Parse("/Long 42949672954294967295");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OVERLOAD);
+        EXPECT_EQ(e.GetErrorCode(), E_OVERLOAD);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -802,9 +802,9 @@ TEST(CmdLineParserTest, Overload)
     {
         parser.Parse("/Double 1e1000");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_OVERLOAD);
+        EXPECT_EQ(e.GetErrorCode(), E_OVERLOAD);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -824,9 +824,9 @@ TEST(CmdLineParserTest, Errors)
     {
         parser.Parse("/Unknown");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_UNKNOWN_KEY);
+        EXPECT_EQ(e.GetErrorCode(), E_UNKNOWN_KEY);
         bException = true;
     }
     EXPECT_EQ(bException, true);
@@ -845,10 +845,10 @@ TEST(CmdLineParserTest, Errors)
     {
         parser.Parse("/bool1 Ok /bool2 No");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_INVALID_VALUE);
+        EXPECT_EQ(e.GetErrorCode(), E_INVALID_VALUE);
     }
     EXPECT_EQ(bException, true);
 
@@ -862,20 +862,20 @@ TEST(CmdLineParserTest, Errors)
     //Empty with mandatory
     int integer;
     parser.BindParam("Int", integer);
-    parser.AddConstrains("Int", CmdLineParser::CN_MANDATORY);
+    parser.AddConstrains("Int", CN_MANDATORY);
     try
     {
         parser.Parse("");
     }
-    catch (CmdLineParser::CmdLineParseException& e)
+    catch (CmdLineParseException& e)
     {
         bException = true;
-        EXPECT_EQ(e.GetErrorCode(), CmdLineParser::E_NOT_DEFINED);
+        EXPECT_EQ(e.GetErrorCode(), E_NOT_DEFINED);
     }
     EXPECT_EQ(bException, true);
 
     //Only flags
-    parser.DeleteConstrains("Int", CmdLineParser::CN_MANDATORY);
+    parser.DeleteConstrains("Int", CN_MANDATORY);
     EXPECT_NO_THROW(parser.Parse("/ -"));
     EXPECT_NO_THROW(parser.Parse("/-"));
     EXPECT_NO_THROW(parser.Parse("/"));
@@ -897,31 +897,3 @@ TEST(CmdLineParserTest, ParamNameSensitive)
     EXPECT_EQ(val2, 2);
 }
 
-/*
-int main(int argc, char* argv[])
-{
-    BindParams();
-
-    T_DeleteParams();
-    T_SetParamFlag();
-    T_SimpleParsing();
-    T_SimpleArgumentParsing();
-    T_CN_CHAR_AS_NUMBER();
-    T_CN_MANDATORY();
-    T_CN_NO_DUPLICATE();
-    T_CN_RANGE();
-    T_CN_LENGTH();
-    T_CN_LIST_VALUE();
-    T_CN_CASE_SENSITIVE();
-    T_CN_NO_NEGATIVE_UNSIGNED();
-    T_BindCallback();
-    BindParams();
-    T_RadixPrefix();
-    T_NotNumeric();
-    T_Overload();
-    T_Errors();
-    T_ParamNameSensitive();
-
-	return 0;
-}
-*/
