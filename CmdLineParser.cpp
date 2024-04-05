@@ -1,4 +1,4 @@
-#include "qsp/framework/utils/CmdLineParser.h"
+#include "CmdLineParser.h"
 
 #include <limits>
 #include <sstream>
@@ -12,23 +12,23 @@
 #endif
 
 CmdLineParser::CmdLineParser():
-    mListRadixPrefix({ "0b", "0o", "0x" })
-    , mListRadixBase({ 2, 8, 16 })
-    , mBoolYesValue("Yes")
-    , mBoolNoValue("No")
-    , mIgnoreUnknownParams(true)
-    , mParamNameCaseSensitive(false)
+        mListRadixPrefix({ "0b", "0o", "0x" })
+        , mListRadixBase({ 2, 8, 16 })
+        , mBoolYesValue("Yes")
+        , mBoolNoValue("No")
+        , mIgnoreUnknownParams(true)
+        , mParamNameCaseSensitive(false)
 {
 }
 
 CmdLineParser::CmdLineParser(std::initializer_list<const char*> listParamFlag) :
-    mListRadixPrefix({ "0b", "0o", "0x" })
-    , mListRadixBase({ 2, 8, 16 })
-    , mBoolYesValue("Yes")
-    , mBoolNoValue("No")
-    , mIgnoreUnknownParams(true)
-    , mParamNameCaseSensitive(false)
-    , mListFlag(listParamFlag)
+        mListRadixPrefix({ "0b", "0o", "0x" })
+        , mListRadixBase({ 2, 8, 16 })
+        , mBoolYesValue("Yes")
+        , mBoolNoValue("No")
+        , mIgnoreUnknownParams(true)
+        , mParamNameCaseSensitive(false)
+        , mListFlag(listParamFlag)
 {
 }
 
@@ -60,11 +60,11 @@ void CmdLineParser::ParseItem(const char* stringItem)
     bool bFlag = false;
 
     auto it = std::find_if(mListFlag.begin(), mListFlag.end(),
-        [stringItem](const char* keySign)
-    {
-        return strstr(stringItem, keySign) == stringItem && //key sign must be placed at the begin of the parameter
-            !IsNegativeNumeric(stringItem);                         //Value is not a negative numeric (in order not to confuse with key)
-    }
+                           [stringItem](const char* keySign)
+                           {
+                               return strstr(stringItem, keySign) == stringItem && //key sign must be placed at the begin of the parameter
+                                      !IsNegativeNumeric(stringItem);                         //Value is not a negative numeric (in order not to confuse with key)
+                           }
     );
 
     if (it != mListFlag.end())
@@ -87,7 +87,7 @@ void CmdLineParser::Reset()
     {
         descr.isAssign = false;
     }
-    
+
     mCurrentParam = nullptr;
 }
 
@@ -106,7 +106,7 @@ void CmdLineParser::Parse(int argc, const char* const argv[], int argStart)
 void CmdLineParser::Parse(const char* cmdLineString)
 {
     Reset();
-    
+
     enum { st_start = 0, st_enter = 1, st_quote, st_end } state = st_start;
 
     unsigned int position = 0;
@@ -116,48 +116,48 @@ void CmdLineParser::Parse(const char* cmdLineString)
     {
         switch (state)
         {
-        case st_start:
-            switch (cmdLineString[position])
-            {
-            case '"':
-            {
-                state = st_quote;
-            }
-            break;
-            default:
-                if (cmdLineString[position] != ' ')
+            case st_start:
+                switch (cmdLineString[position])
                 {
-                    stringAccum.push_back(cmdLineString[position]);
-                    state = st_enter;
+                    case '"':
+                    {
+                        state = st_quote;
+                    }
+                        break;
+                    default:
+                        if (cmdLineString[position] != ' ')
+                        {
+                            stringAccum.push_back(cmdLineString[position]);
+                            state = st_enter;
+                        }
                 }
-            }
-            break;
-
-        case st_enter:
-            switch (cmdLineString[position])
-            {
-            case ' ':
-                state = st_end;
                 break;
-            default:
-                stringAccum.push_back(cmdLineString[position]);
-            }
-            break;
 
-        case st_quote:
-            switch (cmdLineString[position])
-            {
-            case '"':
-                state = st_end;
+            case st_enter:
+                switch (cmdLineString[position])
+                {
+                    case ' ':
+                        state = st_end;
+                        break;
+                    default:
+                        stringAccum.push_back(cmdLineString[position]);
+                }
                 break;
-            default:
-                stringAccum.push_back(cmdLineString[position]);
-            }
-            break;
 
-        case st_end:
-            //it will be processed further. We process this case in order to eliminate warning
-            break;
+            case st_quote:
+                switch (cmdLineString[position])
+                {
+                    case '"':
+                        state = st_end;
+                        break;
+                    default:
+                        stringAccum.push_back(cmdLineString[position]);
+                }
+                break;
+
+            case st_end:
+                //it will be processed further. We process this case in order to eliminate warning
+                break;
         }
 
         if (state == st_end)
@@ -205,17 +205,16 @@ CmdLineParser::radix_t CmdLineParser::GetNumberRadix(const char* szValue)
             break;
         }
     }
-    
+
     return radix;
 }
 
-bool CmdLineParser::LongFromString(const char* paramName, const char* numberString, long& number, int radix)
+void CmdLineParser::LongFromString(const char* paramName, const char* numberString, long& number, int radix)
 {
     if (numberString[0] == '\0')
     {
         //string empty can be in case if only radix prefix is entered without value
-        OnError(paramName, E_NOT_NUMERIC); 
-        return false;
+        throw CmdLineParseException(paramName, E_NOT_NUMERIC);
     }
 
     char* stringstop;
@@ -225,8 +224,7 @@ bool CmdLineParser::LongFromString(const char* paramName, const char* numberStri
 
     if (errno == ERANGE)
     {
-        OnError(paramName, E_OVERLOAD);
-        return false;
+        throw CmdLineParseException(paramName, E_OVERLOAD);
     }
 
     while (*stringstop != '\0' && (*stringstop == ' ' || iscntrl(*stringstop)))
@@ -234,19 +232,16 @@ bool CmdLineParser::LongFromString(const char* paramName, const char* numberStri
 
     if (*stringstop != '\0')
     {
-        OnError(paramName, E_NOT_NUMERIC);
-        return false;
+        throw CmdLineParseException(paramName, E_NOT_NUMERIC);
     }
-    return true;
 }
 
-bool CmdLineParser::ULongFromString(const char* paramName, const char* numberString, unsigned long& number, int radix)
+void CmdLineParser::ULongFromString(const char* paramName, const char* numberString, unsigned long& number, int radix)
 {
     if (numberString[0] == '\0')
     {
         //string empty can be in case if only radix prefix is entered without value
-        OnError(paramName, E_NOT_NUMERIC);
-        return false;
+        throw CmdLineParseException(paramName, E_NOT_NUMERIC);
     }
 
     char* stringstop;
@@ -256,29 +251,25 @@ bool CmdLineParser::ULongFromString(const char* paramName, const char* numberStr
 
     if (errno == ERANGE)
     {
-        OnError(paramName, E_OVERLOAD);
-        return false;
+        throw CmdLineParseException(paramName, E_OVERLOAD);
     }
-        
+
     while (*stringstop != '\0' && (*stringstop == ' ' || iscntrl(*stringstop)))
         stringstop++;
 
     if (*stringstop != '\0')
     {
-        OnError(paramName, E_NOT_NUMERIC);
-        return false;
+        throw CmdLineParseException(paramName, E_NOT_NUMERIC);
     }
 
-    return true;
 }
 
-bool CmdLineParser::DoubleFromString(const char* paramName, const char* numberString, double& number)
+void CmdLineParser::DoubleFromString(const char* paramName, const char* numberString, double& number)
 {
     if (numberString[0] == '\0')
     {
         //string empty can be in case if only radix prefix is entered without value
-        OnError(paramName, E_NOT_NUMERIC);
-        return false;
+        throw CmdLineParseException(paramName, E_NOT_NUMERIC);
     }
 
     char* stringstop;
@@ -288,8 +279,7 @@ bool CmdLineParser::DoubleFromString(const char* paramName, const char* numberSt
 
     if (errno == ERANGE)
     {
-        OnError(paramName, E_OVERLOAD);
-        return false;
+        throw CmdLineParseException(paramName, E_OVERLOAD);
     }
 
     while (*stringstop != '\0' && (*stringstop == ' ' || iscntrl(*stringstop)))
@@ -297,11 +287,9 @@ bool CmdLineParser::DoubleFromString(const char* paramName, const char* numberSt
 
     if (*stringstop != '\0')
     {
-        OnError(paramName, E_NOT_NUMERIC);
-        return false;
+        throw CmdLineParseException(paramName, E_NOT_NUMERIC);
     }
 
-    return true;
 }
 
 void CmdLineParser::CheckValueConstrains(ParamDescriptor* descriptor, const char* value)
@@ -331,9 +319,9 @@ void CmdLineParser::CheckValueConstrains(ParamDescriptor* descriptor, const char
 
     if (descriptor->valueConstrains.size() > 0)
     {
-        OnError(descriptor->paramName, E_INVALID_VALUE);
+        throw CmdLineParseException(descriptor->paramName, E_INVALID_VALUE);
     }
-    
+
 }
 
 void CmdLineParser::CheckNumericValueConstrains(ParamDescriptor* descriptor, double value)
@@ -353,7 +341,7 @@ void CmdLineParser::CheckNumericValueConstrains(ParamDescriptor* descriptor, dou
 
     if (descriptor->numericValueConstrains.size() > 0)
     {
-        OnError(descriptor->paramName, E_INVALID_VALUE);
+        throw CmdLineParseException(descriptor->paramName, E_INVALID_VALUE);
     }
 }
 
@@ -375,7 +363,7 @@ void CmdLineParser::AddParamFlag(const char* paramFlag)
     {
         mListFlag.push_back(paramFlag);
     }
-    
+
 }
 
 void CmdLineParser::DeleteParamFlag(const char* paramFlag)
@@ -818,7 +806,7 @@ bool CmdLineParser::IsParamExist(const char* paramName) const
 bool CmdLineParser::DeleteParam(const char* paramName)
 {
     auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName](ParamDescriptor& descrInList)
-        {return strcasecmp(descrInList.paramName, paramName) == 0; });
+    {return strcasecmp(descrInList.paramName, paramName) == 0; });
 
     if (it != mListParamDescriptors.end())
     {
@@ -833,7 +821,7 @@ bool CmdLineParser::DeleteParam(const char* paramName)
     {
         return false;
     }
- }
+}
 
 void CmdLineParser::ClearParams()
 {
@@ -856,16 +844,16 @@ CmdLineParser::ParamDescriptor* CmdLineParser::GetParamDescriptor(const char* pa
     {
         return it.operator->();
     }
-     
-    OnError(paramName, E_UNKNOWN_KEY);
+
+    throw CmdLineParseException(paramName, E_UNKNOWN_KEY);
 
     return &mDummyDescriptor;
- }
+}
 
 CmdLineParser::ParamDescriptor* CmdLineParser::FindParamDescriptor(const char* paramName)
 {
     bool bSencitive = mParamNameCaseSensitive;
-    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName, bSencitive](ParamDescriptor& descrInList) 
+    auto it = std::find_if(mListParamDescriptors.begin(), mListParamDescriptors.end(), [paramName, bSencitive](ParamDescriptor& descrInList)
     {
         if (bSencitive)
             return strcmp(descrInList.paramName, paramName) == 0;
@@ -920,7 +908,7 @@ void CmdLineParser::OnFinish()
     {
         if ((descr.constrainRules & CN_MANDATORY) && !descr.isAssign)
         {
-            OnError(descr.paramName, E_NOT_DEFINED);
+            throw CmdLineParseException(descr.paramName, E_NOT_DEFINED);
         }
     }
 }
@@ -932,15 +920,15 @@ void CmdLineParser::AnalyzeParam(const char* pszParam)
     if (descr == nullptr)
     {
         if (!mIgnoreUnknownParams)
-            OnError(pszParam, E_UNKNOWN_KEY);
+            throw CmdLineParseException(pszParam, E_UNKNOWN_KEY);
         return;
     }
 
     if (descr->isAssign && (descr->constrainRules &  CN_NO_DUPLICATE))
     {
-        OnError(pszParam, E_DUPLICATE);
-        return;
+        throw CmdLineParseException(pszParam, E_DUPLICATE);
     }
+
     if (descr->paramType == P_FLAG)
     {
         descr->isAssign = true;
@@ -964,7 +952,7 @@ void CmdLineParser::CheckLength(ParamDescriptor* descriptor, const char* value)
 {
     if ((descriptor->constrainRules & CN_LENGTH) && strlen(value) > descriptor->length)
     {
-        OnError(descriptor->paramName, E_TOO_LONG);
+        throw CmdLineParseException(descriptor->paramName, E_TOO_LONG);
     }
 }
 
@@ -972,90 +960,228 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
 {
     switch (mCurrentParam->paramType)
     {
-    case P_CHAR:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        if (mCurrentParam->constrainRules & CN_CHAR_AS_NUMBER)
+        case P_CHAR:
         {
+            CheckLength(mCurrentParam, pszValue);
+
+            if (mCurrentParam->constrainRules & CN_CHAR_AS_NUMBER)
+            {
+                radix_t radix = GetNumberRadix(pszValue);
+                pszValue += radix.prefix_size;
+
+                long val;
+                LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+
+                if ((val < std::numeric_limits<char>::min()) || (val > std::numeric_limits<char>::max()))
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
+                }
+
+                if (mCurrentParam->constrainRules & CN_RANGE)
+                {
+                    if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+                    {
+                        throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                    }
+                }
+
+                CheckValueConstrains(mCurrentParam, pszValue);
+                CheckNumericValueConstrains(mCurrentParam, val);
+
+                if (mCurrentParam->isCallback)
+                {
+                    mCurrentParam->callbackContainer.funcChar(mCurrentParam->paramName, (char)val);
+                }
+                else
+                {
+                    *((char*)mCurrentParam->paramData) = (char)val;
+                }
+            }
+            else
+            {
+                if (strlen(pszValue) > 1)
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_TOO_LONG);
+                }
+                else
+                {
+                    CheckValueConstrains(mCurrentParam, pszValue);
+
+                    if (mCurrentParam->isCallback)
+                    {
+                        mCurrentParam->callbackContainer.funcChar(mCurrentParam->paramName, pszValue[0]);
+                    }
+                    else
+                    {
+                        *((char*)mCurrentParam->paramData) = pszValue[0];
+                    }
+
+                }
+            }
+            mCurrentParam->isAssign = true;
+        }
+            break;
+
+        case P_UCHAR:
+        {
+            CheckLength(mCurrentParam, pszValue);
+
+            if (mCurrentParam->constrainRules & CN_CHAR_AS_NUMBER)
+            {
+                radix_t radix = GetNumberRadix(pszValue);
+                pszValue += radix.prefix_size;
+
+                unsigned long val;
+                if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && IsNegativeNumeric(pszValue))
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_NEGATIVE);
+                }
+
+                if (IsNegativeNumeric(pszValue))
+                {
+                    long negative;
+                    LongFromString(mCurrentParam->paramName, pszValue, negative, radix.radix);
+                    if (negative < std::numeric_limits<char>::min())
+                    {
+                        throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
+                    }
+                    else
+                    {
+                        val = negative;
+                    }
+                }
+                else
+                {
+                    ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+                    if (val > std::numeric_limits<unsigned char>::max())
+                    {
+                        throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
+                    }
+                }
+
+                if (mCurrentParam->constrainRules & CN_RANGE)
+                {
+                    if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+                    {
+                        throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                    }
+                }
+
+                CheckValueConstrains(mCurrentParam, pszValue);
+                CheckNumericValueConstrains(mCurrentParam, val);
+
+                *((unsigned char*)mCurrentParam->paramData) = (unsigned char)val;
+            }
+            else
+            {
+
+                if (strlen(pszValue) > 1)
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_TOO_LONG);
+                }
+                else
+                {
+                    CheckValueConstrains(mCurrentParam, pszValue);
+
+                    if (mCurrentParam->isCallback)
+                    {
+                        mCurrentParam->callbackContainer.funcChar(mCurrentParam->paramName, (unsigned char)pszValue[0]);
+                    }
+                    else
+                    {
+                        *((char*)mCurrentParam->paramData) = (unsigned char)pszValue[0];
+                    }
+
+                }
+            }
+            mCurrentParam->isAssign = true;
+        }
+            break;
+
+        case P_BOOL:
+        {
+            bool res;
+
+            if (strcasecmp(pszValue, mBoolYesValue) == 0)
+            {
+                res = true;
+            }
+            else
+            {
+                if (strcasecmp(pszValue, mBoolNoValue) == 0)
+                {
+                    res = false;
+                }
+                else
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_INVALID_VALUE);
+                }
+            }
+
+            if (mCurrentParam->isCallback)
+            {
+                mCurrentParam->callbackContainer.funcBool(mCurrentParam->paramName, true);
+            }
+            else
+            {
+                *((bool*)mCurrentParam->paramData) = res;
+            }
+
+            mCurrentParam->isAssign = true;
+        }
+            break;
+
+        case P_SHORT:
+        {
+            CheckLength(mCurrentParam, pszValue);
+
             radix_t radix = GetNumberRadix(pszValue);
             pszValue += radix.prefix_size;
 
             long val;
             LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
 
-            if ((val < std::numeric_limits<char>::min()) || (val > std::numeric_limits<char>::max()))
+            if ((val < std::numeric_limits<short>::min()) || (val > std::numeric_limits<short>::max()))
             {
-                OnError(mCurrentParam->paramName, E_OVERLOAD);
+                throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
             }
-
             if (mCurrentParam->constrainRules & CN_RANGE)
             {
                 if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
                 {
-                    OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
                 }
             }
 
             CheckValueConstrains(mCurrentParam, pszValue);
             CheckNumericValueConstrains(mCurrentParam, val);
 
-            if (mCurrentParam->isCallback)
-            {
-                mCurrentParam->callbackContainer.funcChar(mCurrentParam->paramName, (char)val);
-            }
-            else
-            {
-                *((char*)mCurrentParam->paramData) = (char)val;
-            }
+            *((short*)mCurrentParam->paramData) = (short)val;
+
+            mCurrentParam->isAssign = true;
         }
-        else
+            break;
+
+        case P_USHORT:
         {
-            if (strlen(pszValue) > 1)
-            {
-                OnError(mCurrentParam->paramName, E_TOO_LONG);
-            }
-            else
-            {
-                CheckValueConstrains(mCurrentParam, pszValue);
+            CheckLength(mCurrentParam, pszValue);
 
-                if (mCurrentParam->isCallback)
-                {
-                    mCurrentParam->callbackContainer.funcChar(mCurrentParam->paramName, pszValue[0]);
-                }
-                else
-                {
-                    *((char*)mCurrentParam->paramData) = pszValue[0];
-                }
-
-            }
-        }
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_UCHAR:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        if (mCurrentParam->constrainRules & CN_CHAR_AS_NUMBER)
-        {
             radix_t radix = GetNumberRadix(pszValue);
             pszValue += radix.prefix_size;
 
             unsigned long val;
             if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && IsNegativeNumeric(pszValue))
             {
-                OnError(mCurrentParam->paramName, E_NEGATIVE);
+                throw CmdLineParseException(mCurrentParam->paramName, E_NEGATIVE);
             }
 
             if (IsNegativeNumeric(pszValue))
             {
                 long negative;
                 LongFromString(mCurrentParam->paramName, pszValue, negative, radix.radix);
-                if (negative < std::numeric_limits<char>::min())
+                if (negative < std::numeric_limits<short>::min())
                 {
-                    OnError(mCurrentParam->paramName, E_OVERLOAD);
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
                 }
                 else
                 {
@@ -1065,9 +1191,9 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
             else
             {
                 ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
-                if (val > std::numeric_limits<unsigned char>::max())
+                if (val > std::numeric_limits<unsigned short>::max())
                 {
-                    OnError(mCurrentParam->paramName, E_OVERLOAD);
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
                 }
             }
 
@@ -1075,432 +1201,289 @@ void CmdLineParser::AnalyzeValue(const char* pszValue)
             {
                 if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
                 {
-                    OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
                 }
             }
 
             CheckValueConstrains(mCurrentParam, pszValue);
             CheckNumericValueConstrains(mCurrentParam, val);
 
-            *((unsigned char*)mCurrentParam->paramData) = (unsigned char)val;
+            *((unsigned short*)mCurrentParam->paramData) = (unsigned short)val;
+
+            mCurrentParam->isAssign = true;
         }
-        else
+            break;
+
+        case P_INT:
         {
+            CheckLength(mCurrentParam, pszValue);
 
-            if (strlen(pszValue) > 1)
+            radix_t radix = GetNumberRadix(pszValue);
+            pszValue += radix.prefix_size;
+
+            long val;
+            LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+
+            if ((val < std::numeric_limits<int>::min()) || (val > std::numeric_limits<int>::max()))
             {
-                OnError(mCurrentParam->paramName, E_TOO_LONG);
+                throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
             }
-            else
-            {
-                CheckValueConstrains(mCurrentParam, pszValue);
 
-                if (mCurrentParam->isCallback)
+            if (mCurrentParam->constrainRules & CN_RANGE)
+            {
+                if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
                 {
-                    mCurrentParam->callbackContainer.funcChar(mCurrentParam->paramName, (unsigned char)pszValue[0]);
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                }
+            }
+
+            CheckValueConstrains(mCurrentParam, pszValue);
+            CheckNumericValueConstrains(mCurrentParam, val);
+
+            *((int*)mCurrentParam->paramData) = (int)val;
+
+            mCurrentParam->isAssign = true;
+        }
+            break;
+
+        case P_UINT:
+        {
+            CheckLength(mCurrentParam, pszValue);
+
+            radix_t radix = GetNumberRadix(pszValue);
+            pszValue += radix.prefix_size;
+
+            unsigned long val;
+            if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && IsNegativeNumeric(pszValue))
+            {
+                throw CmdLineParseException(mCurrentParam->paramName, E_NEGATIVE);
+            }
+
+            if (IsNegativeNumeric(pszValue))
+            {
+                long negative;
+                LongFromString(mCurrentParam->paramName, pszValue, negative, radix.radix);
+                if (negative < std::numeric_limits<int>::min())
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
                 }
                 else
                 {
-                    *((char*)mCurrentParam->paramData) = (unsigned char)pszValue[0];
+                    val = negative;
                 }
-
-            }
-        }
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_BOOL:
-    {
-        bool res;
-
-        if (strcasecmp(pszValue, mBoolYesValue) == 0)
-        {
-            res = true;
-        }
-        else
-        {
-            if (strcasecmp(pszValue, mBoolNoValue) == 0)
-            {
-                res = false;
             }
             else
             {
-                OnError(mCurrentParam->paramName, E_INVALID_VALUE);
+                ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+                if (val > std::numeric_limits<unsigned int>::max())
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
+                }
             }
-        }
 
-        if (mCurrentParam->isCallback)
-        {
-            mCurrentParam->callbackContainer.funcBool(mCurrentParam->paramName, true);
-        }
-        else
-        {
-            *((bool*)mCurrentParam->paramData) = res;
-        }
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_SHORT:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        radix_t radix = GetNumberRadix(pszValue);
-        pszValue += radix.prefix_size;
-
-        long val;
-        LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
-
-        if ((val < std::numeric_limits<short>::min()) || (val > std::numeric_limits<short>::max()))
-        {
-            OnError(mCurrentParam->paramName, E_OVERLOAD);
-        }
-        if (mCurrentParam->constrainRules & CN_RANGE)
-        {
-            if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+            if (mCurrentParam->constrainRules & CN_RANGE)
             {
-                OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                }
             }
+
+            CheckValueConstrains(mCurrentParam, pszValue);
+            CheckNumericValueConstrains(mCurrentParam, val);
+
+            *((unsigned int*)mCurrentParam->paramData) = (unsigned int)val;
+
+            mCurrentParam->isAssign = true;
         }
+            break;
 
-        CheckValueConstrains(mCurrentParam, pszValue);
-        CheckNumericValueConstrains(mCurrentParam, val);
-
-        *((short*)mCurrentParam->paramData) = (short)val;
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_USHORT:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        radix_t radix = GetNumberRadix(pszValue);
-        pszValue += radix.prefix_size;
-
-        unsigned long val;
-        if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && IsNegativeNumeric(pszValue))
+        case P_LONG:
         {
-            OnError(mCurrentParam->paramName, E_NEGATIVE);
-        }
+            CheckLength(mCurrentParam, pszValue);
 
-        if (IsNegativeNumeric(pszValue))
-        {
-            long negative;
-            LongFromString(mCurrentParam->paramName, pszValue, negative, radix.radix);
-            if (negative < std::numeric_limits<short>::min())
+            radix_t radix = GetNumberRadix(pszValue);
+            pszValue += radix.prefix_size;
+
+            long val;
+            LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
+
+            if (mCurrentParam->constrainRules & CN_RANGE)
             {
-                OnError(mCurrentParam->paramName, E_OVERLOAD);
+                if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                }
+            }
+
+            CheckValueConstrains(mCurrentParam, pszValue);
+            CheckNumericValueConstrains(mCurrentParam, val);
+
+            if (mCurrentParam->isCallback)
+            {
+                mCurrentParam->callbackContainer.funcLong(mCurrentParam->paramName, val);
             }
             else
             {
-                val = negative;
+                *((long*)mCurrentParam->paramData) = val;
             }
+
+            mCurrentParam->isAssign = true;
         }
-        else
+            break;
+
+        case P_ULONG:
         {
+            CheckLength(mCurrentParam, pszValue);
+
+            radix_t radix = GetNumberRadix(pszValue);
+            pszValue += radix.prefix_size;
+
+            unsigned long val;
+            if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && pszValue[0] == '-')
+            {
+                throw CmdLineParseException(mCurrentParam->paramName, E_NEGATIVE);
+            }
+
             ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
-            if (val > std::numeric_limits<unsigned short>::max())
+
+            if (mCurrentParam->constrainRules & CN_RANGE)
             {
-                OnError(mCurrentParam->paramName, E_OVERLOAD);
+                if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                }
             }
-        }
 
-        if (mCurrentParam->constrainRules & CN_RANGE)
-        {
-            if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+            CheckValueConstrains(mCurrentParam, pszValue);
+            CheckNumericValueConstrains(mCurrentParam, val);
+
+            if (mCurrentParam->isCallback)
             {
-                OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
-            }
-        }
-
-        CheckValueConstrains(mCurrentParam, pszValue);
-        CheckNumericValueConstrains(mCurrentParam, val);
-
-        *((unsigned short*)mCurrentParam->paramData) = (unsigned short)val;
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_INT:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        radix_t radix = GetNumberRadix(pszValue);
-        pszValue += radix.prefix_size;
-
-        long val;
-        LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
-
-        if ((val < std::numeric_limits<int>::min()) || (val > std::numeric_limits<int>::max()))
-        {
-            OnError(mCurrentParam->paramName, E_OVERLOAD);
-        }
-
-        if (mCurrentParam->constrainRules & CN_RANGE)
-        {
-            if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
-            {
-                OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
-            }
-        }
-
-        CheckValueConstrains(mCurrentParam, pszValue);
-        CheckNumericValueConstrains(mCurrentParam, val);
-
-        *((int*)mCurrentParam->paramData) = (int)val;
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_UINT:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        radix_t radix = GetNumberRadix(pszValue);
-        pszValue += radix.prefix_size;
-
-        unsigned long val;
-        if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && IsNegativeNumeric(pszValue))
-        {
-            OnError(mCurrentParam->paramName, E_NEGATIVE);
-        }
-
-        if (IsNegativeNumeric(pszValue))
-        {
-            long negative;
-            LongFromString(mCurrentParam->paramName, pszValue, negative, radix.radix);
-            if (negative < std::numeric_limits<int>::min())
-            {
-                OnError(mCurrentParam->paramName, E_OVERLOAD);
+                mCurrentParam->callbackContainer.funcULong(mCurrentParam->paramName, val);
             }
             else
             {
-                val = negative;
+                *((unsigned long*)mCurrentParam->paramData) = val;
             }
+
+            mCurrentParam->isAssign = true;
         }
-        else
+            break;
+
+        case P_FLOAT:
         {
-            ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
-            if (val > std::numeric_limits<unsigned int>::max())
+            CheckLength(mCurrentParam, pszValue);
+
+            double val;
+            DoubleFromString(mCurrentParam->paramName, pszValue, val);
+
+            if ((val < std::numeric_limits<float>::min()) || (val > std::numeric_limits<float>::max()))
             {
-                OnError(mCurrentParam->paramName, E_OVERLOAD);
+                throw CmdLineParseException(mCurrentParam->paramName, E_OVERLOAD);
             }
-        }
 
-        if (mCurrentParam->constrainRules & CN_RANGE)
-        {
-            if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+            if (mCurrentParam->constrainRules & CN_RANGE)
             {
-                OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                }
             }
+
+            CheckValueConstrains(mCurrentParam, pszValue);
+            CheckNumericValueConstrains(mCurrentParam, val);
+
+            *((float*)mCurrentParam->paramData) = (float)val;
+
+            mCurrentParam->isAssign = true;
         }
+            break;
 
-        CheckValueConstrains(mCurrentParam, pszValue);
-        CheckNumericValueConstrains(mCurrentParam, val);
-
-        *((unsigned int*)mCurrentParam->paramData) = (unsigned int)val;
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_LONG:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        radix_t radix = GetNumberRadix(pszValue);
-        pszValue += radix.prefix_size;
-
-        long val;
-        LongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
-
-        if (mCurrentParam->constrainRules & CN_RANGE)
+        case P_DOUBLE:
         {
-            if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+            CheckLength(mCurrentParam, pszValue);
+
+            double val;
+            DoubleFromString(mCurrentParam->paramName, pszValue, val);
+
+            if (mCurrentParam->constrainRules & CN_RANGE)
             {
-                OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+                {
+                    throw CmdLineParseException(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                }
             }
-        }
 
-        CheckValueConstrains(mCurrentParam, pszValue);
-        CheckNumericValueConstrains(mCurrentParam, val);
+            CheckValueConstrains(mCurrentParam, pszValue);
+            CheckNumericValueConstrains(mCurrentParam, val);
 
-        if (mCurrentParam->isCallback)
-        {
-            mCurrentParam->callbackContainer.funcLong(mCurrentParam->paramName, val);
-        }
-        else
-        {
-            *((long*)mCurrentParam->paramData) = val;
-        }
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_ULONG:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        radix_t radix = GetNumberRadix(pszValue);
-        pszValue += radix.prefix_size;
-
-        unsigned long val;
-        if ((mCurrentParam->constrainRules & CN_NO_NEGATIVE_UNSIGNED) && pszValue[0] == '-')
-        {
-            OnError(mCurrentParam->paramName, E_NEGATIVE);
-        }
-
-        ULongFromString(mCurrentParam->paramName, pszValue, val, radix.radix);
-
-        if (mCurrentParam->constrainRules & CN_RANGE)
-        {
-            if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+            if (mCurrentParam->isCallback)
             {
-                OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                mCurrentParam->callbackContainer.funcDouble(mCurrentParam->paramName, val);
             }
-        }
-
-        CheckValueConstrains(mCurrentParam, pszValue);
-        CheckNumericValueConstrains(mCurrentParam, val);
-
-        if (mCurrentParam->isCallback)
-        {
-            mCurrentParam->callbackContainer.funcULong(mCurrentParam->paramName, val);
-        }
-        else
-        {
-            *((unsigned long*)mCurrentParam->paramData) = val;
-        }
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_FLOAT:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        double val;
-        DoubleFromString(mCurrentParam->paramName, pszValue, val);
-
-        if ((val < std::numeric_limits<float>::min()) || (val > std::numeric_limits<float>::max()))
-        {
-            OnError(mCurrentParam->paramName, E_OVERLOAD);
-        }
-
-        if (mCurrentParam->constrainRules & CN_RANGE)
-        {
-            if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+            else
             {
-                OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                *((double*)mCurrentParam->paramData) = val;
             }
+
+            mCurrentParam->isAssign = true;
         }
+            break;
 
-        CheckValueConstrains(mCurrentParam, pszValue);
-        CheckNumericValueConstrains(mCurrentParam, val);
-
-        *((float*)mCurrentParam->paramData) = (float)val;
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_DOUBLE:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        double val;
-        DoubleFromString(mCurrentParam->paramName, pszValue, val);
-
-        if (mCurrentParam->constrainRules & CN_RANGE)
+        case P_STRING:
         {
-            if (val < mCurrentParam->minValue || val > mCurrentParam->maxValue)
+            CheckLength(mCurrentParam, pszValue);
+
+            CheckValueConstrains(mCurrentParam, pszValue);
+
+            mCurrentParam->isAssign = true;
+
+            if (mCurrentParam->isCallback)
             {
-                OnError(mCurrentParam->paramName, E_OUT_OF_RANGE);
+                mCurrentParam->callbackContainer.funcCharPtr(mCurrentParam->paramName, pszValue);
+            }
+            else
+            {
+                *((std::string*)mCurrentParam->paramData) = pszValue;
             }
         }
+            break;
 
-        CheckValueConstrains(mCurrentParam, pszValue);
-        CheckNumericValueConstrains(mCurrentParam, val);
-
-        if (mCurrentParam->isCallback)
+        case P_CHAR_BUFFER:
         {
-            mCurrentParam->callbackContainer.funcDouble(mCurrentParam->paramName, val);
+            CheckLength(mCurrentParam, pszValue);
+
+            CheckValueConstrains(mCurrentParam, pszValue);
+
+            strncpy((char*)mCurrentParam->paramData, pszValue, mCurrentParam->length);
+
+            mCurrentParam->isAssign = true;
         }
-        else
-        {
-            *((double*)mCurrentParam->paramData) = val;
-        }
+            break;
 
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    case P_STRING:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        CheckValueConstrains(mCurrentParam, pszValue);
-
-        mCurrentParam->isAssign = true;
-
-        if (mCurrentParam->isCallback)
-        {
-            mCurrentParam->callbackContainer.funcCharPtr(mCurrentParam->paramName, pszValue);
-        }
-        else
-        {
-            *((std::string*)mCurrentParam->paramData) = pszValue;
-        }
-    }
-    break;
-
-    case P_CHAR_BUFFER:
-    {
-        CheckLength(mCurrentParam, pszValue);
-
-        CheckValueConstrains(mCurrentParam, pszValue);
-
-        strncpy((char*)mCurrentParam->paramData, pszValue, mCurrentParam->length);
-
-        mCurrentParam->isAssign = true;
-    }
-    break;
-
-    default:
-        break;
+        default:
+            break;
     }
 }
 
-const char* CmdLineParser::CmdLineParseException::GetParamName() const
-{ 
-    return paramName; 
-}
-
-CmdLineParser::error_t CmdLineParser::CmdLineParseException::GetErrorCode() const
-{ 
-    return errorCode; 
-}
-
-void CmdLineParser::OnError(const char* paramName, error_t errorCode)
+const char* CmdLineParseException::GetParamName() const
 {
-    throw CmdLineParseException(paramName, errorCode);
+    return paramName;
 }
 
-CmdLineParser::CmdLineParseException::CmdLineParseException(const char* szparamName, error_t errorCode)
+parser_error_t CmdLineParseException::GetErrorCode() const
+{
+    return errorCode;
+}
+
+CmdLineParseException::CmdLineParseException(const char* szparamName, parser_error_t errorCode)
 {
     this->paramName = szparamName;
     this->errorCode = errorCode;
 }
 
-size_t CmdLineParser::CmdLineParseException::GetMaxStringSize(const char* stringArray[], size_t arraySize)
+size_t CmdLineParseException::GetMaxStringSize(const char* stringArray[], size_t arraySize)
 {
     size_t maxSize = 0;
     for (size_t i = 0; i < arraySize; i++)
@@ -1515,7 +1498,7 @@ size_t CmdLineParser::CmdLineParseException::GetMaxStringSize(const char* string
     return maxSize;
 }
 
-const char* CmdLineParser::CmdLineParseException::what() const noexcept
+const char* CmdLineParseException::what() const noexcept
 {
     if (errorString)
     {
@@ -1523,17 +1506,17 @@ const char* CmdLineParser::CmdLineParseException::what() const noexcept
     }
 
     static const char* errorStringArray[] =
-    {
-        "unknown key name",     //E_UNKNOWN_KEY
-        "invalid value",        //E_INVALID_VALUE
-        "duplicate value",      //E_DUPLICATE
-        "value is too long",    //E_TOO_LONG, 
-        "not numeric value",    //E_NOT_NUMERIC, 
-        "value is too large",   //E_OVERLOAD
-        "value is out of range",//E_OUT_OF_RANGE
-        "value is not defined", //E_NOT_DEFINED,
-        "value cannot be negative" //E_NEGATIVE
-    };
+            {
+                    "unknown key name",     //E_UNKNOWN_KEY
+                    "invalid value",        //E_INVALID_VALUE
+                    "duplicate value",      //E_DUPLICATE
+                    "value is too long",    //E_TOO_LONG,
+                    "not numeric value",    //E_NOT_NUMERIC,
+                    "value is too large",   //E_OVERLOAD
+                    "value is out of range",//E_OUT_OF_RANGE
+                    "value is not defined", //E_NOT_DEFINED,
+                    "value cannot be negative" //E_NEGATIVE
+            };
 
     static const unsigned int cMaxSizeErrorString = GetMaxStringSize(errorStringArray, std::extent <decltype(errorStringArray)>::value);
     static const unsigned int cReserved = 64;
