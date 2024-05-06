@@ -89,6 +89,10 @@ void CmdLineParser::Reset()
     }
 
     mCurrentParam = nullptr;
+
+    std::sort(mListFlag.begin(), mListFlag.end(), [](const std::string& str1, const std::string& str2){
+       return str1.size() > str2.size();
+    }); //Longer strings must be processed at the first
 }
 
 void CmdLineParser::Parse(int argc, const char* const argv[], int argStart)
