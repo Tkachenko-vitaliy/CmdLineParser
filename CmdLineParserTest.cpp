@@ -135,6 +135,24 @@ TEST(CmdLineParserTest, SetParamFlag)
     EXPECT_EQ(parser.IsParamExist("Check Int"), false);
 }
 
+TEST(CmdLineParserTest, DoublePrefix)
+{
+    CmdLineParser parser({ "-", "--"});
+    unsigned short value = 0;
+    parser.BindParam("short", value);
+    parser.Parse("--short 100");
+    EXPECT_EQ(value, 100);
+
+    value = 0;
+    const char* argv[2] =
+            {
+            "--short",
+            "100"
+            };
+    parser.Parse(2, argv);
+    EXPECT_EQ(value, 100);
+}
+
 TEST(CmdLineParserTest, SimpleParsing)
 {
     CmdLineParser parser({ "/", "-", "+++" });
